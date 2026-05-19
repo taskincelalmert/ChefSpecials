@@ -288,6 +288,8 @@
   "avgCarbs": "Ort. Karbonhidrat",
   "avgFat": "Ort. Yağ",
   "notificationSettings": "Bildirim Ayarları",
+  "pushNotifications": "Anlık Bildirimler",
+  "pushNotificationsDescription": "Yemek hatırlatıcıları ve sosyal bildirimleri almak için aç. Aşağıdan ince ayar yapabilirsin.",
   "mealReminders": "Yemek Hatırlatıcıları",
   "socialAlerts": "Sosyal Bildirimler",
   "breakfastReminder": "Kahvaltı Hatırlatıcı",

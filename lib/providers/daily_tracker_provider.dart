@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/daily_log.dart';
@@ -17,9 +18,14 @@ class DailyTrackerProvider extends ChangeNotifier {
     DailyTrackerService? dailyTrackerService,
     CacheService? cacheService,
     ConnectivityService? connectivityService,
+    Stream<User?>? authStream,
   })  : _service = dailyTrackerService ?? DailyTrackerService(),
         _cacheService = cacheService,
-        _connectivityService = connectivityService;
+        _connectivityService = connectivityService {
+    _userId = FirebaseAuth.instance.currentUser?.uid;
+    _authSub = (authStream ?? FirebaseAuth.instance.authStateChanges())
+        .listen(_onAuthChanged);
+  }
 
   DailyLog? _dailyLog;
   NutritionGoal? _nutritionGoal;
@@ -31,6 +37,7 @@ class DailyTrackerProvider extends ChangeNotifier {
 
   StreamSubscription? _logSubscription;
   StreamSubscription? _goalSubscription;
+  StreamSubscription<User?>? _authSub;
 
   DailyLog? get dailyLog => _dailyLog;
   NutritionGoal? get nutritionGoal => _nutritionGoal;
@@ -40,8 +47,35 @@ class DailyTrackerProvider extends ChangeNotifier {
   Map<String, double> get weeklyCalories => _weeklyCalories;
 
   void init(String userId) {
-    if (_userId == userId) return;
+    if (_userId == userId && _logSubscription != null) return;
+    _bindUser(userId);
+  }
+
+  void _onAuthChanged(User? user) {
+    final newUid = user?.uid;
+    if (newUid == _userId && (newUid == null || _logSubscription != null)) {
+      return;
+    }
+    if (newUid == null) {
+      _userId = null;
+      _logSubscription?.cancel();
+      _goalSubscription?.cancel();
+      _logSubscription = null;
+      _goalSubscription = null;
+      _dailyLog = null;
+      _nutritionGoal = null;
+      _weeklyCalories = {};
+      _loadedWeekKey = null;
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+    _bindUser(newUid);
+  }
+
+  void _bindUser(String userId) {
     _userId = userId;
+    _loadedWeekKey = null;
     _listenToGoal();
     _listenToLog();
     loadWeeklyCalories(_selectedDate);
@@ -81,9 +115,11 @@ class DailyTrackerProvider extends ChangeNotifier {
     if (_dailyLog == null && !_isLoading) _isLoading = true;
     _dailyLog = null;
 
-    // Immediately serve cached log so the UI isn't blank
+    // Immediately serve cached log so the UI isn't blank — but only if it
+    // belongs to the current user. The cache is keyed by date alone, so
+    // without this check we can serve another user's log after re-login.
     final cached = _cacheService?.getCachedDailyLog(dateString);
-    if (cached != null) {
+    if (cached != null && cached.userId == _userId) {
       _dailyLog = cached;
       _isLoading = false;
       notifyListeners();
@@ -99,7 +135,12 @@ class DailyTrackerProvider extends ChangeNotifier {
       },
       onError: (_) {
         _isLoading = false;
-        _dailyLog ??= _cacheService?.getCachedDailyLog(dateString);
+        if (_dailyLog == null) {
+          final cached = _cacheService?.getCachedDailyLog(dateString);
+          if (cached != null && cached.userId == _userId) {
+            _dailyLog = cached;
+          }
+        }
         notifyListeners();
       },
     );
@@ -118,7 +159,15 @@ class DailyTrackerProvider extends ChangeNotifier {
   }
 
   Future<void> addMealEntry(MealEntry entry) async {
-    if (_userId == null) return;
+    // Always write as the live Firebase Auth user. The Firestore security
+    // rule requires `request.resource.data.userId == request.auth.uid`, so
+    // a stale `_userId` (from a previous session) would be rejected with
+    // permission-denied. Re-bind eagerly if they drift apart.
+    final liveUid = FirebaseAuth.instance.currentUser?.uid;
+    if (liveUid == null) return;
+    if (_userId != liveUid) {
+      _bindUser(liveUid);
+    }
 
     final isOnline = await _connectivityService?.isOnline() ?? true;
     final currentMeals = List<MealEntry>.from(_dailyLog?.meals ?? [])
@@ -140,14 +189,27 @@ class DailyTrackerProvider extends ChangeNotifier {
       return;
     }
 
-    if (_dailyLog?.id?.isNotEmpty == true) {
-      final updated = _dailyLog!.copyWith(meals: currentMeals);
-      await _service.updateDailyLog(_dailyLog!.id!, updated);
-    } else {
-      final newLog =
-          DailyLog(userId: _userId!, date: dateString, meals: currentMeals);
-      await _service.createDailyLog(newLog);
+    final cachedLog = _dailyLog;
+    final hasOwnLog = cachedLog != null &&
+        (cachedLog.id?.isNotEmpty ?? false) &&
+        cachedLog.userId == _userId;
+
+    if (hasOwnLog) {
+      final updated = cachedLog.copyWith(meals: currentMeals);
+      try {
+        await _service.updateDailyLog(cachedLog.id!, updated);
+        return;
+      } on FirebaseException catch (e) {
+        if (e.code != 'not-found' && e.code != 'permission-denied') rethrow;
+        // Stale id (doc was deleted, or cache leaked across users) — fall
+        // through and create a fresh log below.
+        debugPrint('addMealEntry: stale daily_log id, recreating ($e)');
+      }
     }
+
+    final newLog =
+        DailyLog(userId: _userId!, date: dateString, meals: currentMeals);
+    await _service.createDailyLog(newLog);
   }
 
   Future<void> removeMealEntry(int index) async {
@@ -218,6 +280,7 @@ class DailyTrackerProvider extends ChangeNotifier {
   void dispose() {
     _logSubscription?.cancel();
     _goalSubscription?.cancel();
+    _authSub?.cancel();
     super.dispose();
   }
 }

@@ -1483,6 +1483,18 @@ abstract class AppLocalizations {
   /// **'Notification Settings'**
   String get notificationSettings;
 
+  /// No description provided for @pushNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Push Notifications'**
+  String get pushNotifications;
+
+  /// No description provided for @pushNotificationsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on to receive meal reminders and social alerts. You can fine-tune what you get below.'**
+  String get pushNotificationsDescription;
+
   /// No description provided for @mealReminders.
   ///
   /// In en, this message translates to:

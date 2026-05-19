@@ -266,17 +266,20 @@ class _AddMealEntryScreenState extends State<AddMealEntryScreen>
                                 carbs: calcCarbs,
                                 fat: calcFat,
                               );
+                              final nav = Navigator.of(ctx);
+                              final messenger =
+                                  ScaffoldMessenger.of(context);
                               try {
-                                final nav = Navigator.of(ctx);
                                 await context
                                     .read<DailyTrackerProvider>()
                                     .addMealEntry(entry);
                                 nav.pop();
                                 if (mounted) context.pop();
                               } catch (e) {
+                                debugPrint('addMealEntry failed: $e');
                                 if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(AppLocalizations.of(context)!.error)),
+                                  messenger.showSnackBar(
+                                    SnackBar(content: Text('${l10n.error}: $e')),
                                   );
                                 }
                               }
@@ -360,13 +363,16 @@ class _AddMealEntryScreenState extends State<AddMealEntryScreen>
       fat: f,
     );
 
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
     try {
       await context.read<DailyTrackerProvider>().addMealEntry(entry);
       if (mounted) context.pop();
     } catch (e) {
+      debugPrint('addMealEntry (recipe) failed: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.error)),
+        messenger.showSnackBar(
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
       }
     }

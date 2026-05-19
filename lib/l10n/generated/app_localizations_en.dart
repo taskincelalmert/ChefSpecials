@@ -742,6 +742,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationSettings => 'Notification Settings';
 
   @override
+  String get pushNotifications => 'Push Notifications';
+
+  @override
+  String get pushNotificationsDescription =>
+      'Turn on to receive meal reminders and social alerts. You can fine-tune what you get below.';
+
+  @override
   String get mealReminders => 'Meal Reminders';
 
   @override

@@ -93,6 +93,21 @@ class NotificationService {
     });
   }
 
+  Future<void> clearFcmToken(String userId) async {
+    try {
+      await _firestore.collection('users').doc(userId).update({
+        'fcmToken': null,
+      });
+    } catch (e) {
+      debugPrint('Error clearing FCM token: $e');
+    }
+    try {
+      await _messaging.deleteToken();
+    } catch (e) {
+      debugPrint('Error deleting FCM token: $e');
+    }
+  }
+
   Future<void> savePreferences(
     String userId,
     Map<String, dynamic> prefs,

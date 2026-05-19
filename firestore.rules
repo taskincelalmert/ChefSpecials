@@ -117,7 +117,11 @@ service cloud.firestore {
     }
 
     match /usernames/{usernameId} {
-      allow read: if request.auth != null;
+      // Public single-doc reads so the register screen can check availability
+      // before the user is authenticated. Listing stays denied to prevent
+      // enumeration of the collection.
+      allow get: if true;
+      allow list: if request.auth != null;
       allow create: if request.auth != null;
     }
 

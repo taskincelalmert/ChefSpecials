@@ -87,3 +87,13 @@ coverage/
 scripts/
 tasks/
 CLAUDE.md
+
+# Project report and screenshots (local-only artifacts)
+PROJECT_REPORT.md
+PROJECT_REPORT.html
+PROJECT_REPORT.pdf
+report_screenshots/
+report_screenshots/*.png
+# NOTE: a blanket "*.png" rule is intentionally NOT used here because it would
+# untrack the launcher icons under android/, ios/, web/favicon.png and
+# assets/logo.png which the app needs at build time.

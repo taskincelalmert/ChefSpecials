@@ -23,6 +23,7 @@ class NotificationProvider extends ChangeNotifier {
   static const _dinnerId = 1003;
 
   // SharedPreferences keys
+  static const _keyPushEnabled = 'notif_push_enabled';
   static const _keyBreakfastEnabled = 'notif_breakfast_enabled';
   static const _keyBreakfastHour = 'notif_breakfast_hour';
   static const _keyBreakfastMinute = 'notif_breakfast_minute';
@@ -37,6 +38,7 @@ class NotificationProvider extends ChangeNotifier {
   static const _keyFollowerAlerts = 'notif_follower_alerts';
 
   // State
+  bool _pushEnabled = false;
   bool _breakfastEnabled = false;
   TimeOfDay _breakfastTime = const TimeOfDay(hour: 8, minute: 0);
   bool _lunchEnabled = false;
@@ -46,7 +48,6 @@ class NotificationProvider extends ChangeNotifier {
   bool _newRecipeAlerts = false;
   bool _commentAlerts = false;
   bool _followerAlerts = false;
-  bool _isInitialized = false;
   bool _permissionDenied = false;
 
   String? _currentUserId;
@@ -54,6 +55,7 @@ class NotificationProvider extends ChangeNotifier {
   StreamSubscription<String>? _tokenRefreshSub;
 
   // Getters
+  bool get pushEnabled => _pushEnabled;
   bool get breakfastEnabled => _breakfastEnabled;
   TimeOfDay get breakfastTime => _breakfastTime;
   bool get lunchEnabled => _lunchEnabled;
@@ -70,71 +72,90 @@ class NotificationProvider extends ChangeNotifier {
       await _tokenRefreshSub?.cancel();
       _tokenRefreshSub = null;
       _currentUserId = null;
-      _isInitialized = false;
       return;
     }
     await _bootstrap(user.uid);
   }
 
   /// Non-prompting bootstrap that runs on every login.
-  /// - Initializes the service (idempotent).
-  /// - Loads stored toggle state.
-  /// - If permission is already granted, saves the current FCM token and
-  ///   listens for token rotations so Firestore never holds a stale token.
-  /// - Does NOT trigger the OS permission popup — that stays opt-in via
-  ///   the Notification Settings screen.
+  /// Loads stored toggle state only. FCM is fully dormant — no OS permission
+  /// check, no token fetch, no Firestore write — until the user explicitly
+  /// flips the master toggle via [setPushEnabled].
   Future<void> _bootstrap(String userId) async {
     _currentUserId = userId;
-    await _service.initialize();
     await _loadFromPrefs();
 
-    final settings = await _service.currentSettings();
-    final authorized =
-        settings.authorizationStatus == AuthorizationStatus.authorized ||
-            settings.authorizationStatus == AuthorizationStatus.provisional;
-    _permissionDenied = !authorized;
-
-    if (authorized) {
-      final token = await _service.getFcmToken();
-      if (token != null) {
-        await _service.saveFcmToken(userId, token);
-      }
-      await _tokenRefreshSub?.cancel();
-      _tokenRefreshSub = _service.tokenRefreshStream.listen((rotated) async {
-        final uid = _currentUserId;
-        if (uid != null) await _service.saveFcmToken(uid, rotated);
-      });
+    if (_pushEnabled) {
+      await _activatePush(userId, requestIfNeeded: false);
     }
 
-    _isInitialized = true;
     notifyListeners();
   }
 
-  /// Prompts for permission. Called from the Notification Settings screen.
-  /// Safe to call repeatedly — the OS will only show the dialog once per
-  /// install. After that the user must enable notifications via system
-  /// Settings (see [openSystemSettings]).
-  Future<void> init(String userId) async {
-    if (_isInitialized && !_permissionDenied) return;
+  /// Master toggle: turn push notifications on or off.
+  /// Enabling prompts for OS permission, fetches the FCM token, and starts
+  /// listening for token rotations. Disabling clears the token from Firestore,
+  /// cancels every scheduled reminder, unsubscribes from topics, and resets
+  /// all sub-toggles to off.
+  Future<void> setPushEnabled(bool enabled) async {
+    final userId = _currentUserId;
+    if (userId == null) return;
 
-    _currentUserId = userId;
+    if (enabled) {
+      final granted = await _activatePush(userId, requestIfNeeded: true);
+      _pushEnabled = granted;
+      await _persistPushEnabled(_pushEnabled);
+      notifyListeners();
+    } else {
+      _pushEnabled = false;
+      await _persistPushEnabled(false);
+
+      await _tokenRefreshSub?.cancel();
+      _tokenRefreshSub = null;
+      await _service.clearFcmToken(userId);
+      await _service.cancelAllReminders();
+
+      if (_newRecipeAlerts) {
+        await _service.unsubscribeFromTopic('new_recipes');
+      }
+
+      _breakfastEnabled = false;
+      _lunchEnabled = false;
+      _dinnerEnabled = false;
+      _newRecipeAlerts = false;
+      _commentAlerts = false;
+      _followerAlerts = false;
+      await _saveToPrefs();
+      await _mirrorToFirestore({
+        'notifyOnComment': false,
+        'notifyOnFollow': false,
+      });
+
+      notifyListeners();
+    }
+  }
+
+  /// Initializes FCM for a user that has opted into push.
+  /// Returns true if permission is granted and the token was registered.
+  Future<bool> _activatePush(
+    String userId, {
+    required bool requestIfNeeded,
+  }) async {
     await _service.initialize();
-    await _loadFromPrefs();
 
-    final settings = await _service.requestPermission();
+    final settings = requestIfNeeded
+        ? await _service.requestPermission()
+        : await _service.currentSettings();
     final authorized =
         settings.authorizationStatus == AuthorizationStatus.authorized ||
             settings.authorizationStatus == AuthorizationStatus.provisional;
 
     if (!authorized) {
       _permissionDenied = true;
-      _isInitialized = true;
-      notifyListeners();
-      return;
+      return false;
     }
 
     _permissionDenied = false;
-    _isInitialized = true;
 
     final token = await _service.getFcmToken();
     if (token != null) {
@@ -146,23 +167,34 @@ class NotificationProvider extends ChangeNotifier {
       if (uid != null) await _service.saveFcmToken(uid, rotated);
     });
 
-    notifyListeners();
+    return true;
   }
 
   Future<void> recheckPermission(String userId) async {
-    _isInitialized = false;
+    if (!_pushEnabled) return;
     _permissionDenied = false;
     notifyListeners();
-    await init(userId);
+    final granted = await _activatePush(userId, requestIfNeeded: true);
+    if (!granted) {
+      _pushEnabled = false;
+      await _persistPushEnabled(false);
+    }
+    notifyListeners();
   }
 
   Future<void> openSystemSettings() => _service.openSystemSettings();
 
   Future<NotificationSettings> currentSettings() => _service.currentSettings();
 
+  Future<void> _persistPushEnabled(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyPushEnabled, value);
+  }
+
   Future<void> _loadFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
 
+    _pushEnabled = prefs.getBool(_keyPushEnabled) ?? false;
     _breakfastEnabled = prefs.getBool(_keyBreakfastEnabled) ?? false;
     _breakfastTime = TimeOfDay(
       hour: prefs.getInt(_keyBreakfastHour) ?? 8,
@@ -213,6 +245,7 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> toggleBreakfastReminder(bool enabled) async {
+    if (enabled && !_pushEnabled) return;
     _breakfastEnabled = enabled;
     notifyListeners();
     await _saveToPrefs();
@@ -249,6 +282,7 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> toggleLunchReminder(bool enabled) async {
+    if (enabled && !_pushEnabled) return;
     _lunchEnabled = enabled;
     notifyListeners();
     await _saveToPrefs();
@@ -285,6 +319,7 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> toggleDinnerReminder(bool enabled) async {
+    if (enabled && !_pushEnabled) return;
     _dinnerEnabled = enabled;
     notifyListeners();
     await _saveToPrefs();
@@ -321,6 +356,7 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> toggleNewRecipeAlerts(bool enabled) async {
+    if (enabled && !_pushEnabled) return;
     _newRecipeAlerts = enabled;
     notifyListeners();
     await _saveToPrefs();
@@ -333,6 +369,7 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> toggleCommentAlerts(bool enabled) async {
+    if (enabled && !_pushEnabled) return;
     _commentAlerts = enabled;
     notifyListeners();
     await _saveToPrefs();
@@ -340,6 +377,7 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> toggleFollowerAlerts(bool enabled) async {
+    if (enabled && !_pushEnabled) return;
     _followerAlerts = enabled;
     notifyListeners();
     await _saveToPrefs();

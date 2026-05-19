@@ -52,6 +52,8 @@ class _FoodItemListScreenState extends State<FoodItemListScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<FoodItemProvider>();
+    final view = View.of(context);
+    final systemBottomInset = view.viewPadding.bottom / view.devicePixelRatio;
 
     return Scaffold(
       body: Column(
@@ -61,7 +63,7 @@ class _FoodItemListScreenState extends State<FoodItemListScreen> {
         ],
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 100),
+        padding: EdgeInsets.only(bottom: 80 + systemBottomInset),
         child: FloatingActionButton(
           heroTag: 'materials_fab',
           onPressed: () => context.push('/add-food-item'),

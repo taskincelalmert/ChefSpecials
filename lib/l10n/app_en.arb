@@ -288,6 +288,8 @@
   "avgCarbs": "Avg Carbs",
   "avgFat": "Avg Fat",
   "notificationSettings": "Notification Settings",
+  "pushNotifications": "Push Notifications",
+  "pushNotificationsDescription": "Turn on to receive meal reminders and social alerts. You can fine-tune what you get below.",
   "mealReminders": "Meal Reminders",
   "socialAlerts": "Social Alerts",
   "breakfastReminder": "Breakfast Reminder",

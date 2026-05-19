@@ -87,8 +87,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
     setState(() => _checkingUsername = true);
     _usernameDebounce = Timer(const Duration(milliseconds: 500), () async {
-      final available =
-          await context.read<AuthProvider>().isUsernameAvailable(trimmed);
+      bool? available;
+      try {
+        available =
+            await context.read<AuthProvider>().isUsernameAvailable(trimmed);
+      } catch (_) {
+        available = null;
+      }
       if (mounted && _usernameController.text.trim() == trimmed) {
         setState(() {
           _usernameAvailable = available;

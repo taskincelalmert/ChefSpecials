@@ -742,6 +742,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get notificationSettings => 'Bildirim Ayarları';
 
   @override
+  String get pushNotifications => 'Anlık Bildirimler';
+
+  @override
+  String get pushNotificationsDescription =>
+      'Yemek hatırlatıcıları ve sosyal bildirimleri almak için aç. Aşağıdan ince ayar yapabilirsin.';
+
+  @override
   String get mealReminders => 'Yemek Hatırlatıcıları';
 
   @override

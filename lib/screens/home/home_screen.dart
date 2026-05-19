@@ -121,6 +121,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final hasActiveFilter = _activeFilterCount > 0;
     final trendingIds = trendingProvider.trendingIds;
 
+    final view = View.of(context);
+    final systemBottomInset = view.viewPadding.bottom / view.devicePixelRatio;
+
     return Scaffold(
       body: Column(
         children: [
@@ -171,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 100),
+        padding: EdgeInsets.only(bottom: 80 + systemBottomInset),
         child: FloatingActionButton(
           heroTag: 'home_fab',
           onPressed: () => context.push('/add-recipe'),

@@ -22,7 +22,6 @@ class _NotificationSettingsScreenState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _initNotifications());
   }
 
   @override
@@ -33,19 +32,14 @@ class _NotificationSettingsScreenState
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Re-check permission when user comes back from phone settings
+    // Re-check permission when the user comes back from phone settings —
+    // but only when push has actually been opted into.
     if (state == AppLifecycleState.resumed) {
+      final provider = context.read<NotificationProvider>();
       final userId = context.read<AuthProvider>().userModel?.uid;
-      if (userId != null) {
-        context.read<NotificationProvider>().recheckPermission(userId);
+      if (userId != null && provider.pushEnabled) {
+        provider.recheckPermission(userId);
       }
-    }
-  }
-
-  void _initNotifications() {
-    final userId = context.read<AuthProvider>().userModel?.uid;
-    if (userId != null) {
-      context.read<NotificationProvider>().init(userId);
     }
   }
 
@@ -67,22 +61,106 @@ class _NotificationSettingsScreenState
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
                   children: [
-                    // Permission denied banner
-                    if (provider.permissionDenied)
-                      _buildPermissionBanner(context, l10n),
-                    // Meal Reminders section
-                    _buildSectionLabel(context, l10n.mealReminders),
-                    const SizedBox(height: 8),
-                    _buildMealRemindersCard(context, provider, l10n),
+                    _buildMasterToggleCard(context, provider, l10n),
                     const SizedBox(height: 20),
-                    // Social Alerts section
-                    _buildSectionLabel(context, l10n.socialAlerts),
-                    const SizedBox(height: 8),
-                    _buildSocialAlertsCard(context, provider, l10n),
+                    if (provider.pushEnabled && provider.permissionDenied)
+                      _buildPermissionBanner(context, l10n),
+                    AnimatedOpacity(
+                      duration: const Duration(milliseconds: 200),
+                      opacity: provider.pushEnabled ? 1.0 : 0.45,
+                      child: IgnorePointer(
+                        ignoring: !provider.pushEnabled,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildSectionLabel(context, l10n.mealReminders),
+                            const SizedBox(height: 8),
+                            _buildMealRemindersCard(context, provider, l10n),
+                            const SizedBox(height: 20),
+                            _buildSectionLabel(context, l10n.socialAlerts),
+                            const SizedBox(height: 8),
+                            _buildSocialAlertsCard(context, provider, l10n),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 );
               },
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMasterToggleCard(
+    BuildContext context,
+    NotificationProvider provider,
+    AppLocalizations l10n,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceOf(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppTheme.neutralLightOf(context).withValues(alpha: 0.5),
+        ),
+        boxShadow: [AppTheme.shadowOf(context)],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              provider.pushEnabled
+                  ? Icons.notifications_active_outlined
+                  : Icons.notifications_off_outlined,
+              color: AppTheme.primaryColor,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.pushNotifications,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.pushNotificationsDescription,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondaryOf(context),
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch.adaptive(
+            value: provider.pushEnabled,
+            onChanged: (value) async {
+              final userId = context.read<AuthProvider>().userModel?.uid;
+              if (userId == null) return;
+              await provider.setPushEnabled(value);
+              if (value && provider.permissionDenied && context.mounted) {
+                final settings = await provider.currentSettings();
+                if (settings.authorizationStatus ==
+                    AuthorizationStatus.denied) {
+                  await provider.openSystemSettings();
+                }
+              }
+            },
+            activeTrackColor: AppTheme.primaryColor,
           ),
         ],
       ),
