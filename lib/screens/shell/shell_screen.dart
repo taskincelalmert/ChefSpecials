@@ -13,7 +13,6 @@ import '../../providers/cooking_log_provider.dart';
 import '../../providers/recipe_provider.dart';
 import '../../providers/shopping_list_provider.dart';
 import '../../widgets/achievement_celebration.dart';
-import '../../widgets/connectivity_indicator.dart';
 
 class ShellScreen extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -100,14 +99,7 @@ class _ShellScreenState extends State<ShellScreen> {
 
     return Scaffold(
       extendBody: true,
-      body: Column(
-        children: [
-          const ConnectivityIndicator(),
-          Expanded(
-            child: AchievementCelebration(child: widget.navigationShell),
-          ),
-        ],
-      ),
+      body: AchievementCelebration(child: widget.navigationShell),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: SafeArea(

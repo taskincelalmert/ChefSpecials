@@ -3391,48 +3391,6 @@ abstract class AppLocalizations {
   /// **'Rating'**
   String get rating;
 
-  /// No description provided for @youreOffline.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'re Offline'**
-  String get youreOffline;
-
-  /// No description provided for @changesSyncWhenConnected.
-  ///
-  /// In en, this message translates to:
-  /// **'Changes will sync when connected'**
-  String get changesSyncWhenConnected;
-
-  /// No description provided for @backOnline.
-  ///
-  /// In en, this message translates to:
-  /// **'Back Online — Syncing...'**
-  String get backOnline;
-
-  /// No description provided for @storageAndCache.
-  ///
-  /// In en, this message translates to:
-  /// **'Storage & Cache'**
-  String get storageAndCache;
-
-  /// No description provided for @cacheSize.
-  ///
-  /// In en, this message translates to:
-  /// **'Cache Size'**
-  String get cacheSize;
-
-  /// No description provided for @clearCache.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear Cache'**
-  String get clearCache;
-
-  /// No description provided for @pendingSync.
-  ///
-  /// In en, this message translates to:
-  /// **'Pending Sync'**
-  String get pendingSync;
-
   /// No description provided for @addVideo.
   ///
   /// In en, this message translates to:

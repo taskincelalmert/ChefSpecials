@@ -1,22 +1,14 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/recipe.dart';
-import '../services/cache_service.dart';
-import '../services/connectivity_service.dart';
 import '../services/recipe_service.dart';
 
 class RecipeProvider extends ChangeNotifier {
   final RecipeService _recipeService;
-  final CacheService? _cacheService;
-  final ConnectivityService? _connectivityService;
 
   RecipeProvider({
     RecipeService? recipeService,
-    CacheService? cacheService,
-    ConnectivityService? connectivityService,
-  })  : _recipeService = recipeService ?? RecipeService(),
-        _cacheService = cacheService,
-        _connectivityService = connectivityService;
+  }) : _recipeService = recipeService ?? RecipeService();
 
   static const int _pageSize = 10;
 
@@ -65,15 +57,6 @@ class RecipeProvider extends ChangeNotifier {
   void _listenToRecipes() {
     _isLoading = true;
 
-    if (_streamRecipes.isEmpty && _cacheService != null) {
-      final cached = _cacheService.getCachedRecipes();
-      if (cached.isNotEmpty) {
-        _streamRecipes = cached;
-        _isLoading = false;
-        notifyListeners();
-      }
-    }
-
     _subscription?.cancel();
     _subscription =
         _recipeService.getRecipesStream(limit: _pageSize).listen(
@@ -82,14 +65,10 @@ class RecipeProvider extends ChangeNotifier {
         _hasMore = recipes.length >= _pageSize;
         _isLoading = false;
         notifyListeners();
-        _cacheService?.cacheRecipes(allRecipes);
       },
       onError: (error) {
         debugPrint('RecipeProvider stream error: $error');
         _isLoading = false;
-        if (_streamRecipes.isEmpty) {
-          _streamRecipes = _cacheService?.getCachedRecipes() ?? [];
-        }
         notifyListeners();
         Future.delayed(const Duration(seconds: 3), () {
           if (_initialized) _listenToRecipes();
@@ -148,18 +127,6 @@ class RecipeProvider extends ChangeNotifier {
   }
 
   Future<String> createRecipe(Recipe recipe) async {
-    final isOnline = await _connectivityService?.isOnline() ?? true;
-    if (!isOnline) {
-      final tempId = 'offline_${DateTime.now().millisecondsSinceEpoch}';
-      final offline = recipe.copyWith(id: tempId);
-      _streamRecipes = [offline, ..._streamRecipes];
-      notifyListeners();
-      await _cacheService?.queueOfflineAction({
-        'type': 'create_recipe',
-        'recipe': {...recipe.toMap(), 'id': tempId},
-      });
-      return tempId;
-    }
     return await _recipeService.createRecipe(recipe);
   }
 

@@ -5,23 +5,15 @@ import 'package:intl/intl.dart';
 import '../models/daily_log.dart';
 import '../models/meal_entry.dart';
 import '../models/nutrition_goal.dart';
-import '../services/cache_service.dart';
-import '../services/connectivity_service.dart';
 import '../services/daily_tracker_service.dart';
 
 class DailyTrackerProvider extends ChangeNotifier {
   final DailyTrackerService _service;
-  final CacheService? _cacheService;
-  final ConnectivityService? _connectivityService;
 
   DailyTrackerProvider({
     DailyTrackerService? dailyTrackerService,
-    CacheService? cacheService,
-    ConnectivityService? connectivityService,
     Stream<User?>? authStream,
-  })  : _service = dailyTrackerService ?? DailyTrackerService(),
-        _cacheService = cacheService,
-        _connectivityService = connectivityService {
+  }) : _service = dailyTrackerService ?? DailyTrackerService() {
     _userId = FirebaseAuth.instance.currentUser?.uid;
     _authSub = (authStream ?? FirebaseAuth.instance.authStateChanges())
         .listen(_onAuthChanged);
@@ -115,32 +107,15 @@ class DailyTrackerProvider extends ChangeNotifier {
     if (_dailyLog == null && !_isLoading) _isLoading = true;
     _dailyLog = null;
 
-    // Immediately serve cached log so the UI isn't blank — but only if it
-    // belongs to the current user. The cache is keyed by date alone, so
-    // without this check we can serve another user's log after re-login.
-    final cached = _cacheService?.getCachedDailyLog(dateString);
-    if (cached != null && cached.userId == _userId) {
-      _dailyLog = cached;
-      _isLoading = false;
-      notifyListeners();
-    }
-
     _logSubscription = _service.getDailyLog(_userId!, dateString).listen(
       (log) {
         _dailyLog = log;
         _isLoading = false;
         _weeklyCalories[dateString] = log?.totalCalories ?? 0;
         notifyListeners();
-        if (log != null) _cacheService?.cacheDailyLog(log);
       },
       onError: (_) {
         _isLoading = false;
-        if (_dailyLog == null) {
-          final cached = _cacheService?.getCachedDailyLog(dateString);
-          if (cached != null && cached.userId == _userId) {
-            _dailyLog = cached;
-          }
-        }
         notifyListeners();
       },
     );
@@ -169,25 +144,8 @@ class DailyTrackerProvider extends ChangeNotifier {
       _bindUser(liveUid);
     }
 
-    final isOnline = await _connectivityService?.isOnline() ?? true;
     final currentMeals = List<MealEntry>.from(_dailyLog?.meals ?? [])
       ..add(entry);
-
-    if (!isOnline) {
-      // Optimistic local update
-      _dailyLog = (_dailyLog ??
-              DailyLog(userId: _userId!, date: dateString, meals: []))
-          .copyWith(meals: currentMeals);
-      notifyListeners();
-      await _cacheService?.cacheDailyLog(_dailyLog!);
-      await _cacheService?.queueOfflineAction({
-        'type': 'add_meal_entry',
-        'userId': _userId,
-        'dateString': dateString,
-        'entry': entry.toMap(),
-      });
-      return;
-    }
 
     final cachedLog = _dailyLog;
     final hasOwnLog = cachedLog != null &&

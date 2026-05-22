@@ -33,9 +33,6 @@ dependencies:
   timezone: ^0.11.0
   lottie: ^3.3.2
   flutter_image_compress: ^2.3.0
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
-  connectivity_plus: ^6.0.0
   video_player: ^2.11.1
   chewie: ^1.13.1
   video_compress: ^3.1.4

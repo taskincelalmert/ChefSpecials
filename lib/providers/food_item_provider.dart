@@ -1,18 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/food_item.dart';
-import '../services/cache_service.dart';
 import '../services/food_item_service.dart';
 
 class FoodItemProvider extends ChangeNotifier {
   final FoodItemService _foodItemService;
-  final CacheService? _cacheService;
 
   FoodItemProvider({
     FoodItemService? foodItemService,
-    CacheService? cacheService,
-  })  : _foodItemService = foodItemService ?? FoodItemService(),
-        _cacheService = cacheService;
+  }) : _foodItemService = foodItemService ?? FoodItemService();
 
   List<FoodItem> _foodItems = [];
   List<FoodItem> _searchResults = [];
@@ -142,17 +138,6 @@ class FoodItemProvider extends ChangeNotifier {
   void listenToFoodItems() {
     _isLoading = true;
 
-    // Serve cached items immediately when loading the "All" category
-    if (_selectedCategory == 'All' && _foodItems.isEmpty && _cacheService != null) {
-      final cached = _cacheService.getCachedFoodItems();
-      if (cached.isNotEmpty) {
-        _foodItems = cached;
-        _invalidate();
-        _isLoading = false;
-        notifyListeners();
-      }
-    }
-
     _subscription?.cancel();
 
     final stream = _selectedCategory == 'All'
@@ -165,17 +150,9 @@ class FoodItemProvider extends ChangeNotifier {
         _invalidate();
         _isLoading = false;
         notifyListeners();
-        // Only cache the full "All" list — partial category lists would corrupt it
-        if (_selectedCategory == 'All') {
-          _cacheService?.cacheFoodItems(items);
-        }
       },
       onError: (error) {
         _isLoading = false;
-        if (_foodItems.isEmpty) {
-          _foodItems = _cacheService?.getCachedFoodItems() ?? [];
-          _invalidate();
-        }
         notifyListeners();
       },
     );
@@ -199,9 +176,8 @@ class FoodItemProvider extends ChangeNotifier {
     try {
       _searchResults = await _foodItemService.searchFoodItems(query);
     } catch (_) {
-      // Fall back to searching the cached list offline
       final lower = query.toLowerCase();
-      _searchResults = (_cacheService?.getCachedFoodItems() ?? _foodItems)
+      _searchResults = _foodItems
           .where((f) => f.name.toLowerCase().contains(lower))
           .toList();
     }
