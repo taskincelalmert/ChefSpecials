@@ -361,19 +361,8 @@ class _RecipeDetailBodyState extends State<_RecipeDetailBody> {
   }
 
   Future<void> _shareRecipe(Recipe r) async {
-    final l10n = AppLocalizations.of(context)!;
-    final ingredientsList = r.ingredients
-        .map((ing) => '- ${ing.amount} ${ing.unit} ${ing.name}')
-        .join('\n');
-    final link = 'chefspecials://recipe/${r.id}';
-    final text = l10n.shareRecipeText(
-      r.title,
-      r.authorName,
-      ingredientsList,
-      link,
-    );
     try {
-      await Share.share(text);
+      await Share.share('https://se380-food-tracker.web.app/recipe/${r.id}');
     } catch (_) {}
   }
 

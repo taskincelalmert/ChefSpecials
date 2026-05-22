@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ChefSpecials</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      text-align: center;
+      padding: 40px 32px;
+      max-width: 360px;
+      width: 100%;
+    }
+    .logo { font-size: 48px; margin-bottom: 16px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    p { color: #aaa; font-size: 15px; margin-bottom: 32px; line-height: 1.5; }
+    .btn {
+      display: inline-block;
+      background: #FF6B35;
+      color: #fff;
+      text-decoration: none;
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">👨‍🍳</div>
+    <h1>ChefSpecials</h1>
+    <p>Open this link in the ChefSpecials app to view the recipe.</p>
+    <a class="btn" id="open-btn" href="#">Open in App</a>
+  </div>
+  <script>
+    const id = window.location.pathname.split('/').filter(Boolean).pop();
+    if (id) {
+      document.getElementById('open-btn').href = 'chefspecials://recipe/' + id;
+    }
+  </script>
+</body>
+</html>

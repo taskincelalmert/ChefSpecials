@@ -1,0 +1,9 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [{
+      "appID": "TEAMID.com.chefspecials.chef_specials",
+      "paths": ["/recipe/*", "/chef/*"]
+    }]
+  }
+}

@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.chefspecials.chef_specials",
+    "sha256_cert_fingerprints": [
+      "34:78:28:28:FF:DF:3F:B9:C5:DB:38:A3:B4:9C:FA:EE:38:AA:FF:B3:62:EA:07:95:46:EE:5B:3F:A5:DF:6E:8C"
+    ]
+  }
+}]

@@ -1,3 +1,4 @@
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -7,8 +8,47 @@ import 'config/routes.dart';
 import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 
-class ChefSpecialsApp extends StatelessWidget {
+class ChefSpecialsApp extends StatefulWidget {
   const ChefSpecialsApp({super.key});
+
+  @override
+  State<ChefSpecialsApp> createState() => _ChefSpecialsAppState();
+}
+
+class _ChefSpecialsAppState extends State<ChefSpecialsApp> {
+  late final AppLinks _appLinks;
+
+  @override
+  void initState() {
+    super.initState();
+    _appLinks = AppLinks();
+    _initDeepLinks();
+  }
+
+  void _initDeepLinks() {
+    _appLinks.uriLinkStream.listen(_handleIncomingLink);
+  }
+
+  void _handleIncomingLink(Uri uri) {
+    String? recipeId;
+
+    if (uri.scheme == 'https') {
+      final segs = uri.pathSegments;
+      if (segs.length >= 2 && segs[0] == 'recipe') recipeId = segs[1];
+    } else if (uri.scheme == 'chefspecials') {
+      // chefspecials://recipe/ID → host=recipe, pathSegments=[ID]
+      final segs = uri.pathSegments;
+      if (uri.host == 'recipe' && segs.isNotEmpty) recipeId = segs[0];
+    }
+
+    if (recipeId != null) {
+      // Home'a gidip sonra tarifi push'la — böylece back butonu her zaman çalışır
+      router.go('/home');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        router.push('/recipe/$recipeId');
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
