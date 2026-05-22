@@ -7,9 +7,7 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/onboarding_provider.dart';
-import '../../services/user_service.dart';
-import '../../services/daily_tracker_service.dart';
+
 import '../../widgets/gradient_button.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -150,14 +148,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
 
     if (success && mounted) {
-      final uid = authProvider.firebaseUser?.uid;
-      if (uid != null) {
-        await OnboardingProvider.savePendingOnboardingData(
-          uid,
-          UserService(),
-          DailyTrackerService(),
-        );
-      }
       if (mounted) {
         context.go('/home');
       }

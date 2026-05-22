@@ -701,9 +701,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shoppingListCreated => 'Shopping list created';
 
   @override
-  String get reports => 'Reports';
-
-  @override
   String get weekly => 'Weekly';
 
   @override

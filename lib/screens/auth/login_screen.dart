@@ -4,9 +4,7 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/onboarding_provider.dart';
-import '../../services/user_service.dart';
-import '../../services/daily_tracker_service.dart';
+
 import '../../widgets/gradient_button.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -39,14 +37,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (success && mounted) {
-      final uid = authProvider.firebaseUser?.uid;
-      if (uid != null) {
-        await OnboardingProvider.savePendingOnboardingData(
-          uid,
-          UserService(),
-          DailyTrackerService(),
-        );
-      }
       if (mounted) {
         if (authProvider.isBanned) {
           context.go('/banned');
@@ -176,18 +166,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 'test123456',
                               );
                               if (success && context.mounted) {
-                                final uid = context
-                                    .read<AuthProvider>()
-                                    .firebaseUser
-                                    ?.uid;
-                                if (uid != null) {
-                                  await OnboardingProvider
-                                      .savePendingOnboardingData(
-                                    uid,
-                                    UserService(),
-                                    DailyTrackerService(),
-                                  );
-                                }
                                 if (context.mounted) {
                                   if (context.read<AuthProvider>().isBanned) {
                                     context.go('/banned');

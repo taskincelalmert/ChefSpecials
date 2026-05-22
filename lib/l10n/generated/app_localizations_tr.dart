@@ -701,9 +701,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get shoppingListCreated => 'Alışveriş listesi oluşturuldu';
 
   @override
-  String get reports => 'Raporlar';
-
-  @override
   String get weekly => 'Haftalık';
 
   @override

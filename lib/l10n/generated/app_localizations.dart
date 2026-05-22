@@ -1405,12 +1405,6 @@ abstract class AppLocalizations {
   /// **'Shopping list created'**
   String get shoppingListCreated;
 
-  /// No description provided for @reports.
-  ///
-  /// In en, this message translates to:
-  /// **'Reports'**
-  String get reports;
-
   /// No description provided for @weekly.
   ///
   /// In en, this message translates to:

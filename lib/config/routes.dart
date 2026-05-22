@@ -31,7 +31,7 @@ import '../screens/shopping_list/shopping_list_detail_screen.dart';
 import '../screens/collections/collection_list_screen.dart';
 import '../screens/collections/collection_detail_screen.dart';
 import '../screens/meal_planner/meal_planner_screen.dart';
-import '../screens/reports/reports_screen.dart';
+
 import '../screens/profile/blocked_users_screen.dart';
 import '../screens/profile/notification_settings_screen.dart';
 import '../screens/profile/settings_screen.dart';
@@ -45,11 +45,9 @@ import '../screens/admin/admin_appeals_screen.dart';
 import '../screens/admin/admin_audit_log_screen.dart';
 import '../screens/admin/admin_reports_screen.dart';
 import '../screens/auth/banned_screen.dart';
-import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/cooking_history/cooking_history_screen.dart';
 import '../screens/trending/trending_recipes_screen.dart';
 import '../screens/achievements/achievements_screen.dart';
-import '../providers/onboarding_provider.dart';
 import '../models/meal_entry.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -71,18 +69,7 @@ final GoRouter router = GoRouter(
       ),
     ),
   ),
-  redirect: (context, state) async {
-    final path = state.uri.path;
-    if (path == '/onboarding') return null;
-    final completed = await OnboardingProvider.hasCompletedOnboarding();
-    if (!completed) return '/onboarding';
-    return null;
-  },
   routes: [
-    GoRoute(
-      path: '/onboarding',
-      builder: (context, state) => const OnboardingScreen(),
-    ),
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
@@ -305,11 +292,6 @@ final GoRouter router = GoRouter(
       parentNavigatorKey: _rootNavigatorKey,
       path: '/meal-planner',
       builder: (context, state) => const MealPlannerScreen(),
-    ),
-    GoRoute(
-      parentNavigatorKey: _rootNavigatorKey,
-      path: '/reports',
-      builder: (context, state) => const ReportsScreen(),
     ),
     GoRoute(
       parentNavigatorKey: _rootNavigatorKey,
