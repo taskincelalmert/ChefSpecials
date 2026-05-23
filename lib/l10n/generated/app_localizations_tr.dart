@@ -119,6 +119,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get done => 'Tamam';
 
   @override
+  String get stepCompleted => 'Adım tamamlandı';
+
+  @override
   String get cancel => 'İptal';
 
   @override

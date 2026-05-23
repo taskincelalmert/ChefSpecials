@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../config/theme.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../models/recipe_step.dart';
 import '../../../widgets/video_player_widget.dart';
 import 'countdown_timer_widget.dart';
@@ -8,11 +9,15 @@ import 'countdown_timer_widget.dart';
 class StepPage extends StatelessWidget {
   final RecipeStep step;
   final int totalSteps;
+  final bool isCompleted;
+  final VoidCallback onToggle;
 
   const StepPage({
     super.key,
     required this.step,
     required this.totalSteps,
+    required this.isCompleted,
+    required this.onToggle,
   });
 
   @override
@@ -88,6 +93,58 @@ class StepPage extends StatelessWidget {
           // Timer
           if (step.timerSeconds != null && step.timerSeconds! > 0)
             CountdownTimerWidget(totalSeconds: step.timerSeconds!),
+
+          const SizedBox(height: 24),
+
+          // Done checkbox
+          GestureDetector(
+            onTap: onToggle,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: isCompleted
+                    ? AppTheme.primaryColor.withValues(alpha: 0.12)
+                    : AppTheme.neutralSoftOf(context),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isCompleted
+                      ? AppTheme.primaryColor
+                      : AppTheme.neutralLightOf(context),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                children: [
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      isCompleted
+                          ? Icons.check_circle
+                          : Icons.radio_button_unchecked,
+                      key: ValueKey(isCompleted),
+                      color: isCompleted
+                          ? AppTheme.primaryColor
+                          : AppTheme.neutralLightOf(context),
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    AppLocalizations.of(context)!.stepCompleted,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: isCompleted
+                          ? AppTheme.primaryColor
+                          : theme.textTheme.bodyMedium?.color,
+                      fontWeight: isCompleted
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

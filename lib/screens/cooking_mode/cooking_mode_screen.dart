@@ -20,11 +20,13 @@ class CookingModeScreen extends StatefulWidget {
 class _CookingModeScreenState extends State<CookingModeScreen> {
   late PageController _pageController;
   int _currentPage = 0;
+  late List<bool> _completedSteps;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _completedSteps = List.filled(widget.recipe.steps.length, false);
   }
 
   @override
@@ -243,6 +245,10 @@ class _CookingModeScreenState extends State<CookingModeScreen> {
                 return StepPage(
                   step: steps[index],
                   totalSteps: steps.length,
+                  isCompleted: _completedSteps[index],
+                  onToggle: () => setState(
+                    () => _completedSteps[index] = !_completedSteps[index],
+                  ),
                 );
               },
             ),

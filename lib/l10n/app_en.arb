@@ -36,6 +36,7 @@
   "next": "Next",
   "previous": "Previous",
   "done": "Done",
+  "stepCompleted": "Step completed",
   "cancel": "Cancel",
   "save": "Save",
   "delete": "Delete",

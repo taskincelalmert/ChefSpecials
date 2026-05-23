@@ -36,6 +36,7 @@
   "next": "İleri",
   "previous": "Geri",
   "done": "Tamam",
+  "stepCompleted": "Adım tamamlandı",
   "cancel": "İptal",
   "save": "Kaydet",
   "delete": "Sil",

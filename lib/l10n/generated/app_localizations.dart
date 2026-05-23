@@ -314,6 +314,12 @@ abstract class AppLocalizations {
   /// **'Done'**
   String get done;
 
+  /// No description provided for @stepCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Step completed'**
+  String get stepCompleted;
+
   /// No description provided for @cancel.
   ///
   /// In en, this message translates to:
