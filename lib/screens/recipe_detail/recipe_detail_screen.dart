@@ -362,7 +362,13 @@ class _RecipeDetailBodyState extends State<_RecipeDetailBody> {
 
   Future<void> _shareRecipe(Recipe r) async {
     try {
-      await Share.share('https://se380-food-tracker.web.app/recipe/${r.id}');
+      final box = context.findRenderObject() as RenderBox?;
+      await Share.share(
+        'https://se380-food-tracker.web.app/recipe/${r.id}',
+        sharePositionOrigin: box != null
+            ? box.localToGlobal(Offset.zero) & box.size
+            : null,
+      );
     } catch (_) {}
   }
 
