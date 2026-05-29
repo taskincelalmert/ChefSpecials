@@ -49,7 +49,7 @@ class AchievementProvider extends ChangeNotifier {
     _userId = userId;
     _subscription?.cancel();
     _isLoading = true;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
     _subscription = _service.streamUserAchievements(userId).listen(
       (data) {
         _unlockedAchievements = data;
