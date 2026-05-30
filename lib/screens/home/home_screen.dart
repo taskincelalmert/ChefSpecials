@@ -50,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<RecipeProvider>().ensureInitialized();
+      context.read<TrendingProvider>().loadTrending();
     });
   }
 
@@ -228,15 +229,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Text(
-                    'ChefSpecials',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.3,
+                  const Expanded(
+                    child: Text(
+                      'ChefSpecials',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.3,
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   Tooltip(
                     message: 'Notifications',
                     child: Stack(
@@ -244,6 +246,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       IconButton(
                         icon: const Icon(Icons.notifications_outlined),
                         color: AppTheme.textSecondaryOf(context),
+                        style: IconButton.styleFrom(
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          padding: const EdgeInsets.all(6),
+                        ),
                         onPressed: () => context.push('/announcements'),
                       ),
                       Consumer<ActivityProvider>(
@@ -287,6 +293,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: IconButton(
                     icon: const Icon(Icons.folder_outlined),
                     color: AppTheme.textSecondaryOf(context),
+                    style: IconButton.styleFrom(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      padding: const EdgeInsets.all(6),
+                    ),
                     onPressed: () => context.push('/collections'),
                   ),
                   ),
@@ -295,6 +305,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: IconButton(
                     icon: const Icon(Icons.shopping_cart_outlined),
                     color: AppTheme.textSecondaryOf(context),
+                    style: IconButton.styleFrom(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      padding: const EdgeInsets.all(6),
+                    ),
                     onPressed: () => context.push('/shopping-lists'),
                   ),
                   ),
@@ -303,6 +317,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: IconButton(
                     icon: const Icon(Icons.favorite_outline),
                     color: AppTheme.textSecondaryOf(context),
+                    style: IconButton.styleFrom(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      padding: const EdgeInsets.all(6),
+                    ),
                     onPressed: () => context.push('/favorites'),
                   ),
                   ),

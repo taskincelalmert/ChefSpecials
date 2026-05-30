@@ -1,6 +1,9 @@
+import 'package:uuid/uuid.dart';
+
 enum MealType { breakfast, lunch, dinner, snack }
 
 class MealEntry {
+  final String id;
   final String name;
   final MealType mealType;
   final String? foodItemId;
@@ -13,6 +16,7 @@ class MealEntry {
   final double fat;
 
   MealEntry({
+    String? id,
     required this.name,
     required this.mealType,
     this.foodItemId,
@@ -23,10 +27,11 @@ class MealEntry {
     required this.protein,
     required this.carbs,
     required this.fat,
-  });
+  }) : id = id ?? const Uuid().v4();
 
   factory MealEntry.fromMap(Map<String, dynamic> map) {
     return MealEntry(
+      id: map['id'] as String?,
       name: map['name'] as String,
       mealType: MealType.values.firstWhere(
         (e) => e.name == map['mealType'],
@@ -45,6 +50,7 @@ class MealEntry {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
       'mealType': mealType.name,
       'foodItemId': foodItemId,

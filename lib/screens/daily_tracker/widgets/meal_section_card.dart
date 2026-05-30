@@ -86,9 +86,7 @@ class _MealSectionCardState extends State<MealSectionCard> {
         children: List.generate(widget.entries.length, (index) {
           final entry = widget.entries[index];
           return Dismissible(
-            key: ValueKey(
-              '${widget.mealType.name}_${entry.name}_$index',
-            ),
+            key: ValueKey(entry.id),
             direction: DismissDirection.endToStart,
             background: Container(
               alignment: Alignment.centerRight,

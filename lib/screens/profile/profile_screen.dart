@@ -623,7 +623,9 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildAchievementsPreview(
       BuildContext context, AppLocalizations l10n, String userId) {
     final provider = context.watch<AchievementProvider>();
-    context.read<AchievementProvider>().init(userId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (context.mounted) context.read<AchievementProvider>().init(userId);
+    });
     final recent = provider.unlockedAchievements.take(3).toList();
 
     return Padding(
@@ -655,13 +657,16 @@ class ProfileScreen extends StatelessWidget {
                         ),
                   ),
                   const Spacer(),
-                  Text(
-                    l10n.achievementsUnlocked(
-                        provider.unlockedCount, provider.totalCount),
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textSecondaryOf(context),
+                  Flexible(
+                    child: Text(
+                      l10n.achievementsUnlocked(
+                          provider.unlockedCount, provider.totalCount),
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondaryOf(context),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 4),

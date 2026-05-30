@@ -75,7 +75,7 @@ class _DashboardBodyState extends State<_DashboardBody> {
                           physics: const NeverScrollableScrollPhysics(),
                           mainAxisSpacing: 12,
                           crossAxisSpacing: 12,
-                          childAspectRatio: 1.4,
+                          childAspectRatio: 1.1,
                           children: [
                             _buildStatCard(
                               context: context,

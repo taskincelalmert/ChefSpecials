@@ -176,7 +176,9 @@ class DailyTrackerProvider extends ChangeNotifier {
     if (index < 0 || index >= currentMeals.length) return;
     currentMeals.removeAt(index);
     final updated = _dailyLog!.copyWith(meals: currentMeals);
-    await _service.updateDailyLog(_dailyLog!.id!, updated);
+    _dailyLog = updated;
+    notifyListeners();
+    await _service.updateDailyLog(updated.id!, updated);
   }
 
   Future<void> addWater(int ml) async {
