@@ -44,11 +44,18 @@ post_install do |installer|
     end
   end
 
-  # Fix macOS 26 com.apple.provenance xattr codesign failures in embed script
+  # Fix macOS 26 com.apple.provenance xattr codesign failures in embed script.
+  # Strip extended attributes before signing so codesign actually SUCCEEDS,
+  # instead of swallowing the error (the old "2>/dev/null || true" left frameworks
+  # like objective_c.framework unsigned, causing 0xe8008014 "invalid signature"
+  # when installing on a physical device).
   frameworks_script = "#{installer.sandbox.root}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh"
   if File.exist?(frameworks_script)
     script = File.read(frameworks_script)
-    script.gsub!('eval "$code_sign_cmd"', 'eval "$code_sign_cmd" 2>/dev/null || true')
+    # Undo any previous error-suppression patch.
+    script.gsub!('eval "$code_sign_cmd" 2>/dev/null || true', 'eval "$code_sign_cmd"')
+    # Clear xattrs (incl. com.apple.provenance) right before each codesign call.
+    script.gsub!('eval "$code_sign_cmd"', 'xattr -crs "$1" 2>/dev/null; eval "$code_sign_cmd"')
     File.write(frameworks_script, script)
   end
 end
