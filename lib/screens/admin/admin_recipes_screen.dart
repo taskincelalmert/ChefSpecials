@@ -265,64 +265,87 @@ class _RecipesBodyState extends State<_RecipesBody> {
   Future<bool> _confirmDelete(
       BuildContext context, Recipe recipe, AppLocalizations l10n) async {
     final authUser = context.read<AuthProvider>().userModel;
-    final descController = TextEditingController();
-    final result = await showDialog<bool>(
+    final reason = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: Text(l10n.delete),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.deleteRecipeConfirmAdmin),
-            const SizedBox(height: 16),
-            TextField(
-              controller: descController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: l10n.enterBanReason,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              if (descController.text.trim().isEmpty) return;
-              Navigator.pop(ctx, true);
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: AppTheme.errorColor,
-            ),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+      builder: (ctx) => _DeleteRecipeDialog(l10n: l10n),
     );
 
-    if (result == true && context.mounted) {
+    if (reason != null && context.mounted) {
       await context.read<AdminProvider>().deleteRecipe(
             recipeId: recipe.id ?? '',
             recipeName: recipe.title,
             authorId: recipe.authorId,
             adminId: authUser?.uid ?? '',
             adminName: authUser?.fullName ?? '',
-            description: descController.text.trim(),
+            description: reason,
           );
-      descController.dispose();
       return true;
     }
-    descController.dispose();
     return false;
+  }
+}
+
+class _DeleteRecipeDialog extends StatefulWidget {
+  const _DeleteRecipeDialog({required this.l10n});
+
+  final AppLocalizations l10n;
+
+  @override
+  State<_DeleteRecipeDialog> createState() => _DeleteRecipeDialogState();
+}
+
+class _DeleteRecipeDialogState extends State<_DeleteRecipeDialog> {
+  final _descController = TextEditingController();
+
+  @override
+  void dispose() {
+    _descController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = widget.l10n;
+    return AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      title: Text(l10n.delete),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.deleteRecipeConfirmAdmin),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _descController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: l10n.enterBanReason,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        TextButton(
+          onPressed: () {
+            final reason = _descController.text.trim();
+            if (reason.isEmpty) return;
+            Navigator.pop(context, reason);
+          },
+          style: TextButton.styleFrom(
+            foregroundColor: AppTheme.errorColor,
+          ),
+          child: Text(l10n.delete),
+        ),
+      ],
+    );
   }
 }
