@@ -18,6 +18,7 @@ import '../../providers/rating_provider.dart';
 import '../../providers/favorite_provider.dart';
 import '../../providers/recipe_provider.dart';
 import '../../providers/shopping_list_provider.dart';
+import '../../providers/trending_provider.dart';
 import '../../providers/collection_provider.dart';
 import '../../providers/activity_provider.dart';
 import '../../providers/cooking_log_provider.dart';
@@ -193,7 +194,9 @@ class _RecipeDetailBodyState extends State<_RecipeDetailBody> {
       ),
     );
     if (confirmed == true && context.mounted) {
+      final trendingProvider = context.read<TrendingProvider>();
       await context.read<RecipeProvider>().deleteRecipe(r.id!);
+      trendingProvider.removeRecipe(r.id!);
       if (context.mounted) context.pop();
     }
   }

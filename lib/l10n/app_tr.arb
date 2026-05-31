@@ -550,6 +550,18 @@
   "searchMaterials": "Malzeme ara...",
   "noMaterialsFound": "Malzeme bulunamadı",
   "addButton": "Ekle",
+  "addManually": "Manuel ekle",
+  "addCustomIngredient": "\"{name}\" malzemesini manuel ekle",
+  "@addCustomIngredient": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "customIngredient": "Özel malzeme",
+  "ingredientName": "Malzeme adı",
+  "unit": "Birim",
   "remove": "Kaldır",
   "undo": "Geri Al",
   "nutritionValues": "BESİN DEĞERLERİ",

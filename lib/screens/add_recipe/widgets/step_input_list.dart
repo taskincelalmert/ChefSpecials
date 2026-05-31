@@ -218,45 +218,6 @@ class StepInputList extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        TextFormField(
-                          initialValue: step.timerSeconds?.toString(),
-                          decoration: InputDecoration(
-                            hintText: l10n.timerSeconds,
-                            hintStyle: TextStyle(
-                              color: AppTheme.textTertiaryOf(context),
-                              fontSize: 13,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.timer_outlined,
-                              size: 18,
-                              color: AppTheme.textTertiaryOf(context),
-                            ),
-                            filled: true,
-                            fillColor: AppTheme.neutralSoftOf(context),
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
-                            isDense: true,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                  color: AppTheme.primaryColor, width: 1.5),
-                            ),
-                          ),
-                          style: const TextStyle(fontSize: 13),
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) {
-                            final seconds = int.tryParse(value);
-                            formProvider.updateStep(
-                              index,
-                              timerSeconds: seconds,
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 8),
                         _buildVideoRow(context, index, formProvider, l10n),
                       ],
                     ),

@@ -1335,6 +1335,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addButton => 'Add';
 
   @override
+  String get addManually => 'Add manually';
+
+  @override
+  String addCustomIngredient(String name) {
+    return 'Add \"$name\" manually';
+  }
+
+  @override
+  String get customIngredient => 'Custom ingredient';
+
+  @override
+  String get ingredientName => 'Ingredient name';
+
+  @override
   String get remove => 'Remove';
 
   @override

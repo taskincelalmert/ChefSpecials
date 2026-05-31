@@ -2575,6 +2575,30 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get addButton;
 
+  /// No description provided for @addManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Add manually'**
+  String get addManually;
+
+  /// No description provided for @addCustomIngredient.
+  ///
+  /// In en, this message translates to:
+  /// **'Add \"{name}\" manually'**
+  String addCustomIngredient(String name);
+
+  /// No description provided for @customIngredient.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom ingredient'**
+  String get customIngredient;
+
+  /// No description provided for @ingredientName.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredient name'**
+  String get ingredientName;
+
   /// No description provided for @remove.
   ///
   /// In en, this message translates to:

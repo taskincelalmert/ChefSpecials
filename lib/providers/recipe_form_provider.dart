@@ -90,6 +90,16 @@ class RecipeFormProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addManualIngredient(String name, String amount, String unit) {
+    ingredients.add(Ingredient(
+      name: name,
+      amount: amount,
+      unit: unit,
+    ));
+    _recalculateNutrition();
+    notifyListeners();
+  }
+
   void updateIngredientAmount(int index, String amount) {
     final old = ingredients[index];
     ingredients[index] = Ingredient(
@@ -161,7 +171,6 @@ class RecipeFormProvider extends ChangeNotifier {
           videoUrl: steps[i].videoUrl,
         );
       }
-      _recalculatePrepTime();
       notifyListeners();
     }
   }
@@ -175,16 +184,7 @@ class RecipeFormProvider extends ChangeNotifier {
       timerSeconds: timerSeconds ?? old.timerSeconds,
       videoUrl: old.videoUrl,
     );
-    _recalculatePrepTime();
     notifyListeners();
-  }
-
-  void _recalculatePrepTime() {
-    int totalSeconds = 0;
-    for (final step in steps) {
-      totalSeconds += step.timerSeconds ?? 0;
-    }
-    prepTimeMinutes = (totalSeconds / 60).ceil();
   }
 
   void setImage(File file) {

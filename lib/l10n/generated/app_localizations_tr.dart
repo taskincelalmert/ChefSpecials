@@ -1339,6 +1339,20 @@ class AppLocalizationsTr extends AppLocalizations {
   String get addButton => 'Ekle';
 
   @override
+  String get addManually => 'Manuel ekle';
+
+  @override
+  String addCustomIngredient(String name) {
+    return '\"$name\" malzemesini manuel ekle';
+  }
+
+  @override
+  String get customIngredient => 'Özel malzeme';
+
+  @override
+  String get ingredientName => 'Malzeme adı';
+
+  @override
   String get remove => 'Kaldır';
 
   @override

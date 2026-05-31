@@ -550,6 +550,18 @@
   "searchMaterials": "Search materials...",
   "noMaterialsFound": "No materials found",
   "addButton": "Add",
+  "addManually": "Add manually",
+  "addCustomIngredient": "Add \"{name}\" manually",
+  "@addCustomIngredient": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "customIngredient": "Custom ingredient",
+  "ingredientName": "Ingredient name",
+  "unit": "Unit",
   "remove": "Remove",
   "undo": "Undo",
   "nutritionValues": "NUTRITION VALUES",

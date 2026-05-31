@@ -224,8 +224,120 @@ class IngredientInputList extends StatelessWidget {
             Navigator.pop(sheetContext);
             _showAmountDialog(context, foodItem);
           },
+          onManualAdd: (initialName) {
+            Navigator.pop(sheetContext);
+            _showManualIngredientDialog(context, initialName);
+          },
         ),
       ),
+    );
+  }
+
+  void _showManualIngredientDialog(BuildContext context, String initialName) {
+    final l10n = AppLocalizations.of(context)!;
+    final nameController = TextEditingController(text: initialName);
+    final amountController = TextEditingController(text: '100');
+    const units = ['g', 'mL', 'pcs', 'cups', 'tbsp', 'tsp'];
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        String selectedUnit = 'g';
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            return AlertDialog(
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Text(
+                l10n.customIngredient,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: l10n.ingredientName,
+                      prefixIcon: Icon(
+                        Icons.edit_note,
+                        color: AppTheme.textTertiaryOf(dialogContext),
+                      ),
+                    ),
+                    textCapitalization: TextCapitalization.sentences,
+                    autofocus: initialName.isEmpty,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: TextField(
+                          controller: amountController,
+                          decoration: InputDecoration(
+                            labelText: l10n.quantity,
+                            prefixIcon: Icon(
+                              Icons.scale,
+                              color: AppTheme.textTertiaryOf(dialogContext),
+                            ),
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        flex: 2,
+                        child: DropdownButtonFormField<String>(
+                          initialValue: selectedUnit,
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            labelText: l10n.unit,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 12),
+                          ),
+                          items: units
+                              .map((u) =>
+                                  DropdownMenuItem(value: u, child: Text(u)))
+                              .toList(),
+                          onChanged: (v) {
+                            if (v != null) {
+                              setDialogState(() => selectedUnit = v);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text(l10n.cancel),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final name = nameController.text.trim();
+                    final amount = amountController.text.trim();
+                    if (name.isEmpty || amount.isEmpty) return;
+                    if (double.tryParse(amount) == null) return;
+                    context
+                        .read<RecipeFormProvider>()
+                        .addManualIngredient(name, amount, selectedUnit);
+                    Navigator.pop(dialogContext);
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                  ),
+                  child: Text(l10n.save),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -296,6 +408,7 @@ class IngredientInputList extends StatelessWidget {
                         flex: 2,
                         child: DropdownButtonFormField<String>(
                           initialValue: selectedUnit,
+                          isExpanded: true,
                           decoration: InputDecoration(
                             labelText: l10n.fromUnit,
                             contentPadding: const EdgeInsets.symmetric(
@@ -419,10 +532,12 @@ class IngredientInputList extends StatelessWidget {
 class _FoodItemPickerSheet extends StatefulWidget {
   final ScrollController scrollController;
   final ValueChanged<FoodItem> onSelected;
+  final ValueChanged<String> onManualAdd;
 
   const _FoodItemPickerSheet({
     required this.scrollController,
     required this.onSelected,
+    required this.onManualAdd,
   });
 
   @override
@@ -435,6 +550,7 @@ class _FoodItemPickerSheetState extends State<_FoodItemPickerSheet> {
   List<FoodItem> _items = [];
   List<FoodItem> _filtered = [];
   bool _isLoading = true;
+  String _query = '';
 
   @override
   void initState() {
@@ -456,6 +572,7 @@ class _FoodItemPickerSheetState extends State<_FoodItemPickerSheet> {
 
   void _search(String query) {
     setState(() {
+      _query = query;
       if (query.isEmpty) {
         _filtered = _items;
       } else {
@@ -520,6 +637,55 @@ class _FoodItemPickerSheetState extends State<_FoodItemPickerSheet> {
                   ),
                 ),
               ],
+            ),
+          ),
+        ),
+        // Manual add option — lets the user add an ingredient that isn't
+        // in the food items list by typing its name.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: GestureDetector(
+            onTap: () => widget.onManualAdd(_query.trim()),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.edit_note,
+                        color: AppTheme.primaryColor, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _query.trim().isEmpty
+                          ? AppLocalizations.of(context)!.addManually
+                          : AppLocalizations.of(context)!
+                              .addCustomIngredient(_query.trim()),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                  ),
+                  const Icon(Icons.add,
+                      color: AppTheme.primaryColor, size: 20),
+                ],
+              ),
             ),
           ),
         ),

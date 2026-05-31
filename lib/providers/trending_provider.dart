@@ -66,4 +66,11 @@ class TrendingProvider extends ChangeNotifier {
   Future<void> refresh({String timeWindow = '7d', int limit = 10}) async {
     await loadTrending(limit: limit, timeWindow: timeWindow, force: true);
   }
+
+  void removeRecipe(String recipeId) {
+    final before = _trendingRecipes.length;
+    _trendingRecipes =
+        _trendingRecipes.where((r) => r.id != recipeId).toList();
+    if (_trendingRecipes.length != before) notifyListeners();
+  }
 }
