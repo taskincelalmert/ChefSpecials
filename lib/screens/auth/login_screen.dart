@@ -157,32 +157,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       icon: authProvider.isLoading ? null : Icons.login,
                     ),
                     const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: authProvider.isLoading
-                          ? null
-                          : () async {
-                              final success = await authProvider.signIn(
-                                'test@chefspecials.com',
-                                'test123456',
-                              );
-                              if (success && context.mounted) {
-                                if (context.mounted) {
-                                  if (context.read<AuthProvider>().isBanned) {
-                                    context.go('/banned');
-                                  } else {
-                                    context.go('/home');
-                                  }
-                                }
-                              }
-                            },
-                      icon: const Icon(Icons.bolt, size: 18),
-                      label: Text(l10n.quickLoginTest),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.textSecondaryOf(context),
-                        side: BorderSide(color: AppTheme.neutralLightOf(context)),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
                     TextButton(
                       onPressed: () => context.go('/register'),
                       child: Text(l10n.noAccount),
