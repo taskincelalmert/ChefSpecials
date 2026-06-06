@@ -9,14 +9,16 @@ import '../services/daily_tracker_service.dart';
 
 class DailyTrackerProvider extends ChangeNotifier {
   final DailyTrackerService _service;
+  final FirebaseAuth _auth;
 
   DailyTrackerProvider({
     DailyTrackerService? dailyTrackerService,
+    FirebaseAuth? firebaseAuth,
     Stream<User?>? authStream,
-  }) : _service = dailyTrackerService ?? DailyTrackerService() {
-    _userId = FirebaseAuth.instance.currentUser?.uid;
-    _authSub = (authStream ?? FirebaseAuth.instance.authStateChanges())
-        .listen(_onAuthChanged);
+  })  : _service = dailyTrackerService ?? DailyTrackerService(),
+        _auth = firebaseAuth ?? FirebaseAuth.instance {
+    _userId = _auth.currentUser?.uid;
+    _authSub = (authStream ?? _auth.authStateChanges()).listen(_onAuthChanged);
   }
 
   DailyLog? _dailyLog;
@@ -138,7 +140,7 @@ class DailyTrackerProvider extends ChangeNotifier {
     // rule requires `request.resource.data.userId == request.auth.uid`, so
     // a stale `_userId` (from a previous session) would be rejected with
     // permission-denied. Re-bind eagerly if they drift apart.
-    final liveUid = FirebaseAuth.instance.currentUser?.uid;
+    final liveUid = _auth.currentUser?.uid ?? _userId;
     if (liveUid == null) return;
     if (_userId != liveUid) {
       _bindUser(liveUid);

@@ -8,6 +8,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/recipe.dart';
 import '../../providers/admin_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/trending_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/screen_header.dart';
 
@@ -271,6 +272,7 @@ class _RecipesBodyState extends State<_RecipesBody> {
     );
 
     if (reason != null && context.mounted) {
+      final trending = context.read<TrendingProvider>();
       await context.read<AdminProvider>().deleteRecipe(
             recipeId: recipe.id ?? '',
             recipeName: recipe.title,
@@ -279,8 +281,14 @@ class _RecipesBodyState extends State<_RecipesBody> {
             adminName: authUser?.fullName ?? '',
             description: reason,
           );
-      return true;
+      // Keep the trending cache in sync so the deleted recipe doesn't linger
+      // in the Home trending row (mirrors the owner-delete flow).
+      trending.removeRecipe(recipe.id ?? '');
     }
+    // Return false: AdminProvider.deleteRecipe already removes the item from
+    // its list and notifies, so the ListView rebuild performs the visual
+    // removal. Letting the Dismissible also dismiss would double-remove the
+    // widget (crash); on failure the card correctly stays put.
     return false;
   }
 }

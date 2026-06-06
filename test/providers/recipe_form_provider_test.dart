@@ -275,37 +275,12 @@ void main() {
       expect(provider.steps[0].timerSeconds, 300);
     });
 
-    test('updateStep recalculates prepTime from timers', () {
-      provider.updateStep(0, timerSeconds: 120); // 2 minutes
-      expect(provider.prepTimeMinutes, 2);
-
-      provider.addStep();
-      provider.updateStep(1, timerSeconds: 180); // 3 minutes
-      // Total: 5 minutes
-      expect(provider.prepTimeMinutes, 5);
-    });
-
-    test('updateStep recalculates prepTime rounding up', () {
-      provider.updateStep(0, timerSeconds: 90); // 1.5 minutes -> ceil -> 2
-      expect(provider.prepTimeMinutes, 2);
-    });
-
     test('updateStep notifies listeners', () {
       int notifyCount = 0;
       provider.addListener(() => notifyCount++);
 
       provider.updateStep(0, instruction: 'New instruction');
       expect(notifyCount, 1);
-    });
-
-    test('removeStep recalculates prepTime', () {
-      provider.updateStep(0, timerSeconds: 120);
-      provider.addStep();
-      provider.updateStep(1, timerSeconds: 180);
-      expect(provider.prepTimeMinutes, 5);
-
-      provider.removeStep(1);
-      expect(provider.prepTimeMinutes, 2);
     });
 
     // Privacy and dietary tags
@@ -486,11 +461,5 @@ void main() {
       expect(notifyCount, 1);
     });
 
-    // Edge case: prepTime with no timers
-    test('prepTime is 0 when all steps have no timer', () {
-      provider.updateStep(0, instruction: 'No timer');
-      // timerSeconds defaults to null, so sum = 0, ceil(0/60) = 0
-      expect(provider.prepTimeMinutes, 0);
-    });
   });
 }

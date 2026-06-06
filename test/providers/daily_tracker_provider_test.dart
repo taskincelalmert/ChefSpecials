@@ -4,6 +4,7 @@ import 'package:chef_specials/providers/daily_tracker_provider.dart';
 import 'package:chef_specials/services/daily_tracker_service.dart';
 import 'package:chef_specials/models/meal_entry.dart';
 import 'package:chef_specials/models/nutrition_goal.dart';
+import '../helpers/mock_firebase_auth.dart';
 
 MealEntry _makeMealEntry({
   String name = 'Apple',
@@ -35,8 +36,15 @@ void main() {
   setUp(() {
     fakeFirestore = FakeFirebaseFirestore();
     service = DailyTrackerService(firestore: fakeFirestore);
-    provider = DailyTrackerProvider(dailyTrackerService: service);
+    // Inject a signed-out fake auth so the provider never touches the real
+    // FirebaseAuth singleton; tests drive the user via provider.init(userId).
+    provider = DailyTrackerProvider(
+      dailyTrackerService: service,
+      firebaseAuth: FakeFirebaseAuth(),
+    );
   });
+
+  tearDown(() => provider.dispose());
 
   group('DailyTrackerProvider', () {
     test('initial state', () {

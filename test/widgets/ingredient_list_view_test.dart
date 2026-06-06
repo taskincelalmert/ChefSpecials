@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:chef_specials/models/ingredient.dart';
+import 'package:chef_specials/providers/unit_preference_provider.dart';
 import 'package:chef_specials/screens/recipe_detail/widgets/ingredient_list_view.dart';
 
 void main() {
+  // UnitPreferenceProvider's constructor reads SharedPreferences; mock it so
+  // the async load resolves cleanly and never flakes under the full suite.
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+
   Widget buildTestWidget(List<Ingredient> ingredients) {
-    return MaterialApp(
-      home: Scaffold(
-        body: SingleChildScrollView(
-          child: IngredientListView(ingredients: ingredients),
+    return ChangeNotifierProvider(
+      create: (_) => UnitPreferenceProvider(),
+      child: MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: IngredientListView(ingredients: ingredients),
+          ),
         ),
       ),
     );
@@ -90,13 +100,13 @@ void main() {
     testWidgets('renders a single ingredient correctly',
         (WidgetTester tester) async {
       final ingredients = [
-        Ingredient(name: 'Olive Oil', amount: '2', unit: 'tbsp'),
+        Ingredient(name: 'Olive Oil', amount: '30', unit: 'mL'),
       ];
 
       await tester.pumpWidget(buildTestWidget(ingredients));
 
       expect(find.text('Olive Oil'), findsOneWidget);
-      expect(find.text('2 tbsp'), findsOneWidget);
+      expect(find.text('30 mL'), findsOneWidget);
       expect(find.byType(ListTile), findsOneWidget);
     });
 

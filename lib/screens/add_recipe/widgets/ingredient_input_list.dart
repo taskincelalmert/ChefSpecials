@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -338,7 +340,10 @@ class IngredientInputList extends StatelessWidget {
           },
         );
       },
-    );
+    ).then((_) {
+      nameController.dispose();
+      amountController.dispose();
+    });
   }
 
   void _showAmountDialog(BuildContext context, FoodItem foodItem) {
@@ -491,7 +496,7 @@ class IngredientInputList extends StatelessWidget {
           },
         );
       },
-    );
+    ).then((_) => amountController.dispose());
   }
 
   static WeightUnit? _parseWeightUnit(String label) {
@@ -547,6 +552,7 @@ class _FoodItemPickerSheet extends StatefulWidget {
 class _FoodItemPickerSheetState extends State<_FoodItemPickerSheet> {
   final FoodItemService _service = FoodItemService();
   final TextEditingController _searchController = TextEditingController();
+  StreamSubscription<List<FoodItem>>? _itemsSub;
   List<FoodItem> _items = [];
   List<FoodItem> _filtered = [];
   bool _isLoading = true;
@@ -559,7 +565,7 @@ class _FoodItemPickerSheetState extends State<_FoodItemPickerSheet> {
   }
 
   Future<void> _loadItems() async {
-    _service.getFoodItems().listen((items) {
+    _itemsSub = _service.getFoodItems().listen((items) {
       if (mounted) {
         setState(() {
           _items = items;
@@ -586,6 +592,7 @@ class _FoodItemPickerSheetState extends State<_FoodItemPickerSheet> {
 
   @override
   void dispose() {
+    _itemsSub?.cancel();
     _searchController.dispose();
     super.dispose();
   }

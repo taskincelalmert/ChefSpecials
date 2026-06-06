@@ -4,6 +4,10 @@ import 'package:chef_specials/providers/achievement_provider.dart';
 import 'package:chef_specials/services/achievement_service.dart';
 
 void main() {
+  // AchievementProvider.init() defers notifyListeners via
+  // WidgetsBinding.instance.addPostFrameCallback, which needs the binding.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late FakeFirebaseFirestore fakeFirestore;
   late AchievementService service;
   late AchievementProvider provider;

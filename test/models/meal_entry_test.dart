@@ -213,6 +213,7 @@ void main() {
     group('fromMap/toMap round-trip', () {
       test('round-trip preserves all fields', () {
         final originalMap = {
+          'id': 'meal001',
           'name': 'Pasta',
           'mealType': 'lunch',
           'foodItemId': 'pasta001',
@@ -233,6 +234,7 @@ void main() {
 
       test('round-trip preserves null optional fields', () {
         final originalMap = {
+          'id': 'meal002',
           'name': 'Water',
           'mealType': 'snack',
           'foodItemId': null,

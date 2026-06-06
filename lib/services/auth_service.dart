@@ -56,6 +56,16 @@ class AuthService {
   Future<UserCredential?> signInWithGoogle() async {
     await _ensureGoogleInitialized();
 
+    // `authenticate()` is unsupported on some platforms (e.g. web, where the
+    // documented flow is renderButton). Fail with a typed, friendly error
+    // rather than letting a raw UnsupportedError reach the user.
+    if (!GoogleSignIn.instance.supportsAuthenticate()) {
+      throw FirebaseAuthException(
+        code: 'google-signin-unsupported',
+        message: 'Google sign-in is not available on this platform.',
+      );
+    }
+
     final GoogleSignInAccount account;
     try {
       account = await GoogleSignIn.instance.authenticate();
@@ -64,7 +74,18 @@ class AuthService {
       rethrow;
     }
 
+    // In google_sign_in v7 the ID token is nullable and is the only token
+    // available at sign-in. A null here means a misconfigured client id; keep
+    // it on the typed error path instead of tripping the
+    // GoogleAuthProvider.credential assert (debug) / opaque failure (release).
     final idToken = account.authentication.idToken;
+    if (idToken == null) {
+      throw FirebaseAuthException(
+        code: 'missing-google-id-token',
+        message: 'Google did not return an ID token. '
+            'Check the serverClientId / Web client ID configuration.',
+      );
+    }
     final credential = GoogleAuthProvider.credential(idToken: idToken);
     return await _auth.signInWithCredential(credential);
   }

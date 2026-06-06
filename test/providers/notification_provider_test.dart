@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,7 +20,10 @@ void main() {
     });
 
     test('has correct default values', () {
-      final provider = NotificationProvider(service: mockService);
+      final provider = NotificationProvider(
+        service: mockService,
+        authStream: const Stream<User?>.empty(),
+      );
 
       expect(provider.breakfastEnabled, false);
       expect(provider.breakfastTime, const TimeOfDay(hour: 8, minute: 0));
@@ -46,7 +50,10 @@ void main() {
         'notif_dinner_minute': 0,
       });
 
-      final provider = NotificationProvider(service: mockService);
+      final provider = NotificationProvider(
+        service: mockService,
+        authStream: const Stream<User?>.empty(),
+      );
       final prefs = await SharedPreferences.getInstance();
 
       expect(prefs.getBool('notif_breakfast_enabled'), true);
@@ -77,12 +84,18 @@ void main() {
     });
 
     test('can be instantiated with mock service', () {
-      final provider = NotificationProvider(service: mockService);
+      final provider = NotificationProvider(
+        service: mockService,
+        authStream: const Stream<User?>.empty(),
+      );
       expect(provider, isNotNull);
     });
 
     test('default times are set correctly', () {
-      final provider = NotificationProvider(service: mockService);
+      final provider = NotificationProvider(
+        service: mockService,
+        authStream: const Stream<User?>.empty(),
+      );
       expect(provider.breakfastTime.hour, 8);
       expect(provider.breakfastTime.minute, 0);
       expect(provider.lunchTime.hour, 12);
