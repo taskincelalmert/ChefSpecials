@@ -28,6 +28,7 @@ dependencies:
   http: ^1.2.0
   share_plus: ^10.1.4
   firebase_messaging: ^15.2.10
+  google_sign_in: ^7.2.0
   flutter_local_notifications: ^21.0.0
   app_settings: ^5.1.1
   timezone: ^0.11.0
@@ -63,4 +64,5 @@ flutter:
   generate: true
   assets:
     - assets/logo.png
+    - assets/google_logo.png
     - assets/animations/

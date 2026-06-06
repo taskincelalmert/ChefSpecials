@@ -9,6 +9,9 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 import '../../widgets/gradient_button.dart';
+import '../../widgets/google_sign_in_button.dart';
+import '../../widgets/link_password_dialog.dart';
+import '../../widgets/or_divider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -32,6 +35,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  bool _googleLoading = false;
   DateTime? _birthDate;
 
   // Username availability
@@ -250,6 +254,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _googleLoading = true);
+    final authProvider = context.read<AuthProvider>();
+    final outcome = await authProvider.signInWithGoogle();
+
+    var signedIn = outcome == GoogleSignInOutcome.success;
+    if (outcome == GoogleSignInOutcome.needsPasswordLink && mounted) {
+      final password = await showLinkPasswordDialog(
+        context,
+        authProvider.pendingLinkEmail ?? '',
+      );
+      if (password != null) {
+        signedIn = await authProvider.linkPendingGoogleCredential(password);
+      } else {
+        authProvider.cancelPendingLink();
+      }
+    }
+
+    if (mounted) setState(() => _googleLoading = false);
+
+    if (signedIn && mounted) {
+      if (authProvider.isBanned) {
+        context.go('/banned');
+      } else {
+        context.go('/home');
+      }
+    }
+  }
+
   Widget _buildStep1(AppLocalizations l10n, AuthProvider authProvider) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -259,6 +292,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 8),
+            GoogleSignInButton(
+              text: l10n.continueWithGoogle,
+              isLoading: _googleLoading,
+              onPressed: authProvider.isLoading ? null : _handleGoogleSignIn,
+            ),
+            const SizedBox(height: 20),
+            OrDivider(label: l10n.orLabel),
+            const SizedBox(height: 24),
             Text(
               l10n.accountInformation,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(

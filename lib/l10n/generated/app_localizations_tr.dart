@@ -42,6 +42,22 @@ class AppLocalizationsTr extends AppLocalizations {
   String get signIn => 'Giriş Yap';
 
   @override
+  String get continueWithGoogle => 'Google ile devam et';
+
+  @override
+  String get orLabel => 'VEYA';
+
+  @override
+  String get linkAccountTitle => 'Hesap zaten mevcut';
+
+  @override
+  String get linkAccountMessage =>
+      'Bu e-posta zaten bir şifreyle kayıtlı. Google girişini hesabınıza bağlamak için şifrenizi girin.';
+
+  @override
+  String get linkAccountButton => 'Bağla';
+
+  @override
   String get loginRequired => 'Giriş Gerekli';
 
   @override

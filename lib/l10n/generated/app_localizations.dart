@@ -164,6 +164,36 @@ abstract class AppLocalizations {
   /// **'Sign In'**
   String get signIn;
 
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// No description provided for @orLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'OR'**
+  String get orLabel;
+
+  /// No description provided for @linkAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account already exists'**
+  String get linkAccountTitle;
+
+  /// No description provided for @linkAccountMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already registered with a password. Enter it to connect Google sign-in to your account.'**
+  String get linkAccountMessage;
+
+  /// No description provided for @linkAccountButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get linkAccountButton;
+
   /// No description provided for @loginRequired.
   ///
   /// In en, this message translates to:

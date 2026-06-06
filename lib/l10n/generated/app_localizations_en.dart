@@ -42,6 +42,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signIn => 'Sign In';
 
   @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get orLabel => 'OR';
+
+  @override
+  String get linkAccountTitle => 'Account already exists';
+
+  @override
+  String get linkAccountMessage =>
+      'This email is already registered with a password. Enter it to connect Google sign-in to your account.';
+
+  @override
+  String get linkAccountButton => 'Connect';
+
+  @override
   String get loginRequired => 'Login Required';
 
   @override

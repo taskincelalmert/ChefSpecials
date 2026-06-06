@@ -6,6 +6,9 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 import '../../widgets/gradient_button.dart';
+import '../../widgets/google_sign_in_button.dart';
+import '../../widgets/link_password_dialog.dart';
+import '../../widgets/or_divider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _googleLoading = false;
 
   @override
   void dispose() {
@@ -43,6 +47,35 @@ class _LoginScreenState extends State<LoginScreen> {
         } else {
           context.go('/home');
         }
+      }
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _googleLoading = true);
+    final authProvider = context.read<AuthProvider>();
+    final outcome = await authProvider.signInWithGoogle();
+
+    var signedIn = outcome == GoogleSignInOutcome.success;
+    if (outcome == GoogleSignInOutcome.needsPasswordLink && mounted) {
+      final password = await showLinkPasswordDialog(
+        context,
+        authProvider.pendingLinkEmail ?? '',
+      );
+      if (password != null) {
+        signedIn = await authProvider.linkPendingGoogleCredential(password);
+      } else {
+        authProvider.cancelPendingLink();
+      }
+    }
+
+    if (mounted) setState(() => _googleLoading = false);
+
+    if (signedIn && mounted) {
+      if (authProvider.isBanned) {
+        context.go('/banned');
+      } else {
+        context.go('/home');
       }
     }
   }
@@ -155,6 +188,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       text: l10n.signIn,
                       onPressed: authProvider.isLoading ? null : _handleLogin,
                       icon: authProvider.isLoading ? null : Icons.login,
+                    ),
+                    const SizedBox(height: 20),
+                    OrDivider(label: l10n.orLabel),
+                    const SizedBox(height: 20),
+                    GoogleSignInButton(
+                      text: l10n.continueWithGoogle,
+                      isLoading: _googleLoading,
+                      onPressed:
+                          authProvider.isLoading ? null : _handleGoogleSignIn,
                     ),
                     const SizedBox(height: 12),
                     TextButton(
