@@ -20,10 +20,17 @@ class FavoriteProvider extends ChangeNotifier {
     if (_userId == userId) return;
     _userId = userId;
     _subscription?.cancel();
-    _subscription = _favoriteService.getUserFavoriteIds(userId).listen((ids) {
-      _favoriteRecipeIds = ids.toSet();
-      notifyListeners();
-    });
+    _subscription = _favoriteService.getUserFavoriteIds(userId).listen(
+      (ids) {
+        _favoriteRecipeIds = ids.toSet();
+        notifyListeners();
+      },
+      onError: (e) {
+        debugPrint('FavoriteProvider stream error: $e');
+        // Stream is dead; allow the next listenToFavorites() to re-subscribe.
+        _userId = null;
+      },
+    );
   }
 
   Future<void> toggleFavorite(String recipeId) async {

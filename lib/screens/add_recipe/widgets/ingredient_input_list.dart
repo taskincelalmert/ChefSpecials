@@ -236,267 +236,27 @@ class IngredientInputList extends StatelessWidget {
   }
 
   void _showManualIngredientDialog(BuildContext context, String initialName) {
-    final l10n = AppLocalizations.of(context)!;
-    final nameController = TextEditingController(text: initialName);
-    final amountController = TextEditingController(text: '100');
-    const units = ['g', 'mL', 'pcs', 'cups', 'tbsp', 'tsp'];
-
+    // The dialog widget owns its controllers; disposing them in
+    // showDialog().then() breaks rebuilds during the close animation.
+    final formProvider = context.read<RecipeFormProvider>();
     showDialog(
       context: context,
-      builder: (dialogContext) {
-        String selectedUnit = 'g';
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            return AlertDialog(
-              shape:
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: Text(
-                l10n.customIngredient,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      labelText: l10n.ingredientName,
-                      prefixIcon: Icon(
-                        Icons.edit_note,
-                        color: AppTheme.textTertiaryOf(dialogContext),
-                      ),
-                    ),
-                    textCapitalization: TextCapitalization.sentences,
-                    autofocus: initialName.isEmpty,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: TextField(
-                          controller: amountController,
-                          decoration: InputDecoration(
-                            labelText: l10n.quantity,
-                            prefixIcon: Icon(
-                              Icons.scale,
-                              color: AppTheme.textTertiaryOf(dialogContext),
-                            ),
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 2,
-                        child: DropdownButtonFormField<String>(
-                          initialValue: selectedUnit,
-                          isExpanded: true,
-                          decoration: InputDecoration(
-                            labelText: l10n.unit,
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 12),
-                          ),
-                          items: units
-                              .map((u) =>
-                                  DropdownMenuItem(value: u, child: Text(u)))
-                              .toList(),
-                          onChanged: (v) {
-                            if (v != null) {
-                              setDialogState(() => selectedUnit = v);
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: Text(l10n.cancel),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    final name = nameController.text.trim();
-                    final amount = amountController.text.trim();
-                    if (name.isEmpty || amount.isEmpty) return;
-                    if (double.tryParse(amount) == null) return;
-                    context
-                        .read<RecipeFormProvider>()
-                        .addManualIngredient(name, amount, selectedUnit);
-                    Navigator.pop(dialogContext);
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                  ),
-                  child: Text(l10n.save),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    ).then((_) {
-      nameController.dispose();
-      amountController.dispose();
-    });
+      builder: (_) => _ManualIngredientDialog(
+        initialName: initialName,
+        formProvider: formProvider,
+      ),
+    );
   }
 
   void _showAmountDialog(BuildContext context, FoodItem foodItem) {
-    final l10n = AppLocalizations.of(context)!;
-    final amountController = TextEditingController(text: '100');
-    final isWeight = foodItem.unit == '100g';
-    final baseUnit = isWeight ? 'g' : 'mL';
-
-    final weightUnits = ['g', 'kg', 'oz', 'lb'];
-    final volumeUnits = ['mL', 'L', 'cups', 'tbsp', 'tsp', 'fl oz'];
-    final unitOptions = isWeight ? weightUnits : volumeUnits;
-
+    final formProvider = context.read<RecipeFormProvider>();
     showDialog(
       context: context,
-      builder: (dialogContext) {
-        String selectedUnit = baseUnit;
-
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              title: Text(
-                foodItem.name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppTheme.neutralSoftOf(dialogContext),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${foodItem.calories.toStringAsFixed(0)} kcal, '
-                      '${foodItem.protein.toStringAsFixed(1)}g protein / 100$baseUnit',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.textSecondaryOf(dialogContext),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: TextField(
-                          controller: amountController,
-                          decoration: InputDecoration(
-                            labelText: l10n.quantity,
-                            prefixIcon: Icon(
-                              Icons.scale,
-                              color: AppTheme.textTertiaryOf(dialogContext),
-                            ),
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          autofocus: true,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 2,
-                        child: DropdownButtonFormField<String>(
-                          initialValue: selectedUnit,
-                          isExpanded: true,
-                          decoration: InputDecoration(
-                            labelText: l10n.fromUnit,
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 12),
-                          ),
-                          items: unitOptions
-                              .map((u) =>
-                                  DropdownMenuItem(value: u, child: Text(u)))
-                              .toList(),
-                          onChanged: (v) {
-                            if (v != null) {
-                              setDialogState(() => selectedUnit = v);
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (selectedUnit != baseUnit)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        '${l10n.tapToConvert}: → $baseUnit',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppTheme.textTertiaryOf(dialogContext),
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: Text(l10n.cancel),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    final rawAmount = amountController.text.trim();
-                    if (rawAmount.isEmpty) return;
-                    final parsed = double.tryParse(rawAmount);
-                    if (parsed == null) return;
-
-                    double converted = parsed;
-                    if (selectedUnit != baseUnit) {
-                      if (isWeight) {
-                        final from = _parseWeightUnit(selectedUnit);
-                        final to = _parseWeightUnit(baseUnit);
-                        if (from != null && to != null) {
-                          converted =
-                              UnitConverter.convertWeight(parsed, from, to);
-                        }
-                      } else {
-                        final from = _parseVolumeUnit(selectedUnit);
-                        final to = _parseVolumeUnit(baseUnit);
-                        if (from != null && to != null) {
-                          converted =
-                              UnitConverter.convertVolume(parsed, from, to);
-                        }
-                      }
-                    }
-
-                    final finalAmount = converted == converted.roundToDouble()
-                        ? converted.toInt().toString()
-                        : converted.toStringAsFixed(1);
-
-                    context
-                        .read<RecipeFormProvider>()
-                        .addIngredientFromFoodItem(foodItem, finalAmount);
-                    Navigator.pop(dialogContext);
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                  ),
-                  child: Text(l10n.save),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    ).then((_) => amountController.dispose());
+      builder: (_) => _AmountDialog(
+        foodItem: foodItem,
+        formProvider: formProvider,
+      ),
+    );
   }
 
   static WeightUnit? _parseWeightUnit(String label) {
@@ -534,6 +294,294 @@ class IngredientInputList extends StatelessWidget {
   }
 }
 
+class _ManualIngredientDialog extends StatefulWidget {
+  final String initialName;
+  final RecipeFormProvider formProvider;
+
+  const _ManualIngredientDialog({
+    required this.initialName,
+    required this.formProvider,
+  });
+
+  @override
+  State<_ManualIngredientDialog> createState() =>
+      _ManualIngredientDialogState();
+}
+
+class _ManualIngredientDialogState extends State<_ManualIngredientDialog> {
+  static const _units = ['g', 'mL', 'pcs', 'cups', 'tbsp', 'tsp'];
+
+  late final TextEditingController _nameController =
+      TextEditingController(text: widget.initialName);
+  final TextEditingController _amountController =
+      TextEditingController(text: '100');
+  String _selectedUnit = 'g';
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(
+        l10n.customIngredient,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              labelText: l10n.ingredientName,
+              prefixIcon: Icon(
+                Icons.edit_note,
+                color: AppTheme.textTertiaryOf(context),
+              ),
+            ),
+            textCapitalization: TextCapitalization.sentences,
+            autofocus: widget.initialName.isEmpty,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: TextField(
+                  controller: _amountController,
+                  decoration: InputDecoration(
+                    labelText: l10n.quantity,
+                    prefixIcon: Icon(
+                      Icons.scale,
+                      color: AppTheme.textTertiaryOf(context),
+                    ),
+                  ),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: DropdownButtonFormField<String>(
+                  initialValue: _selectedUnit,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: l10n.unit,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 12),
+                  ),
+                  items: _units
+                      .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => _selectedUnit = v);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () {
+            final name = _nameController.text.trim();
+            final amount = _amountController.text.trim();
+            if (name.isEmpty || amount.isEmpty) return;
+            if (double.tryParse(amount) == null) return;
+            widget.formProvider
+                .addManualIngredient(name, amount, _selectedUnit);
+            Navigator.pop(context);
+          },
+          style: FilledButton.styleFrom(
+            backgroundColor: AppTheme.primaryColor,
+          ),
+          child: Text(l10n.save),
+        ),
+      ],
+    );
+  }
+}
+
+class _AmountDialog extends StatefulWidget {
+  final FoodItem foodItem;
+  final RecipeFormProvider formProvider;
+
+  const _AmountDialog({
+    required this.foodItem,
+    required this.formProvider,
+  });
+
+  @override
+  State<_AmountDialog> createState() => _AmountDialogState();
+}
+
+class _AmountDialogState extends State<_AmountDialog> {
+  static const _weightUnits = ['g', 'kg', 'oz', 'lb'];
+  static const _volumeUnits = ['mL', 'L', 'cups', 'tbsp', 'tsp', 'fl oz'];
+
+  final TextEditingController _amountController =
+      TextEditingController(text: '100');
+  late final bool _isWeight = widget.foodItem.unit == '100g';
+  late final String _baseUnit = _isWeight ? 'g' : 'mL';
+  late String _selectedUnit = _baseUnit;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final rawAmount = _amountController.text.trim();
+    if (rawAmount.isEmpty) return;
+    final parsed = double.tryParse(rawAmount);
+    if (parsed == null) return;
+
+    double converted = parsed;
+    if (_selectedUnit != _baseUnit) {
+      if (_isWeight) {
+        final from = IngredientInputList._parseWeightUnit(_selectedUnit);
+        final to = IngredientInputList._parseWeightUnit(_baseUnit);
+        if (from != null && to != null) {
+          converted = UnitConverter.convertWeight(parsed, from, to);
+        }
+      } else {
+        final from = IngredientInputList._parseVolumeUnit(_selectedUnit);
+        final to = IngredientInputList._parseVolumeUnit(_baseUnit);
+        if (from != null && to != null) {
+          converted = UnitConverter.convertVolume(parsed, from, to);
+        }
+      }
+    }
+
+    final finalAmount = converted == converted.roundToDouble()
+        ? converted.toInt().toString()
+        : converted.toStringAsFixed(1);
+
+    widget.formProvider
+        .addIngredientFromFoodItem(widget.foodItem, finalAmount);
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final foodItem = widget.foodItem;
+    final unitOptions = _isWeight ? _weightUnits : _volumeUnits;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(
+        foodItem.name,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.neutralSoftOf(context),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              '${foodItem.calories.toStringAsFixed(0)} kcal, '
+              '${foodItem.protein.toStringAsFixed(1)}g protein / 100$_baseUnit',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondaryOf(context),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: TextField(
+                  controller: _amountController,
+                  decoration: InputDecoration(
+                    labelText: l10n.quantity,
+                    prefixIcon: Icon(
+                      Icons.scale,
+                      color: AppTheme.textTertiaryOf(context),
+                    ),
+                  ),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  autofocus: true,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: DropdownButtonFormField<String>(
+                  initialValue: _selectedUnit,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: l10n.fromUnit,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 12),
+                  ),
+                  items: unitOptions
+                      .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => _selectedUnit = v);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+          if (_selectedUnit != _baseUnit)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                '${l10n.tapToConvert}: → $_baseUnit',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppTheme.textTertiaryOf(context),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: _save,
+          style: FilledButton.styleFrom(
+            backgroundColor: AppTheme.primaryColor,
+          ),
+          child: Text(l10n.save),
+        ),
+      ],
+    );
+  }
+}
+
 class _FoodItemPickerSheet extends StatefulWidget {
   final ScrollController scrollController;
   final ValueChanged<FoodItem> onSelected;
@@ -565,15 +613,23 @@ class _FoodItemPickerSheetState extends State<_FoodItemPickerSheet> {
   }
 
   Future<void> _loadItems() async {
-    _itemsSub = _service.getFoodItems().listen((items) {
-      if (mounted) {
-        setState(() {
-          _items = items;
-          _filtered = items;
-          _isLoading = false;
-        });
-      }
-    });
+    _itemsSub = _service.getFoodItems().listen(
+      (items) {
+        if (mounted) {
+          setState(() {
+            _items = items;
+            _filtered = items;
+            _isLoading = false;
+          });
+        }
+      },
+      onError: (e) {
+        debugPrint('FoodItemPicker stream error: $e');
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      },
+    );
   }
 
   void _search(String query) {

@@ -27,10 +27,17 @@ class FollowProvider extends ChangeNotifier {
     _currentUserName = userName;
     _currentUserAvatar = userAvatar;
     _sub?.cancel();
-    _sub = _service.watchFollowingIds(currentUserId).listen((ids) {
-      _followingIds = ids.toSet();
-      notifyListeners();
-    });
+    _sub = _service.watchFollowingIds(currentUserId).listen(
+      (ids) {
+        _followingIds = ids.toSet();
+        notifyListeners();
+      },
+      onError: (e) {
+        debugPrint('FollowProvider stream error: $e');
+        // Stream is dead; allow the next initialize() to re-subscribe.
+        _currentUserId = null;
+      },
+    );
   }
 
   Future<void> follow(String targetId) async {

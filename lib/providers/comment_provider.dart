@@ -24,10 +24,15 @@ class CommentProvider extends ChangeNotifier {
 
   void listenToComments(String recipeId) {
     _subscription?.cancel();
-    _subscription = _service.getCommentsStream(recipeId).listen((comments) {
-      _comments = comments;
-      notifyListeners();
-    });
+    _subscription = _service.getCommentsStream(recipeId).listen(
+      (comments) {
+        _comments = comments;
+        notifyListeners();
+      },
+      onError: (e) {
+        debugPrint('CommentProvider stream error: $e');
+      },
+    );
   }
 
   Future<void> addComment(Comment comment) async {
