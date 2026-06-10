@@ -301,7 +301,7 @@ class _SearchBodyState extends State<_SearchBody> {
     AppLocalizations l10n,
     SearchProvider provider,
   ) {
-    if (provider.query.isEmpty) {
+    if (provider.query.isEmpty && provider.activeFilterCount == 0) {
       return _buildInitialState(context, l10n, provider);
     }
 
