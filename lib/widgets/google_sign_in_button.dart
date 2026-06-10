@@ -54,14 +54,26 @@ class GoogleSignInButton extends StatelessWidget {
                 : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset('assets/google_logo.png', width: 22, height: 22),
+                      Image.asset(
+                        'assets/google_logo.png',
+                        width: 22,
+                        height: 22,
+                        errorBuilder: (context, error, stackTrace) => SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: Icon(Icons.login, size: 22, color: textColor),
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Text(
-                        text,
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: textColor,
+                      Flexible(
+                        child: Text(
+                          text,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: textColor,
+                          ),
                         ),
                       ),
                     ],
