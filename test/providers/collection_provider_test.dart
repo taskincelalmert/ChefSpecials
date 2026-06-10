@@ -1,7 +1,21 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:chef_specials/models/recipe_collection.dart';
 import 'package:chef_specials/providers/collection_provider.dart';
 import 'package:chef_specials/services/collection_service.dart';
+
+class _FlakyCollectionService extends CollectionService {
+  _FlakyCollectionService({required FakeFirebaseFirestore firestore})
+      : super(firestore: firestore);
+
+  bool failNext = true;
+
+  @override
+  Stream<List<RecipeCollection>> getUserCollections(String userId) {
+    if (failNext) return Stream.error(Exception('stream failed'));
+    return super.getUserCollections(userId);
+  }
+}
 
 void main() {
   late FakeFirebaseFirestore fakeFirestore;
@@ -204,6 +218,45 @@ void main() {
       provider.init(userId);
       await Future.delayed(Duration.zero);
       expect(provider.isLoading, false);
+    });
+
+    test('createCollection shows the new collection immediately', () async {
+      provider.init(userId);
+      await Future.delayed(Duration.zero);
+
+      await provider.createCollection('Instant');
+      // Visible as soon as the create call returns, without waiting
+      // for the snapshot stream to emit.
+      expect(provider.collections, hasLength(1));
+      expect(provider.collections.first.name, 'Instant');
+      expect(provider.collections.first.id, isNotNull);
+    });
+
+    test('init re-subscribes after a stream error', () async {
+      final flaky = _FlakyCollectionService(firestore: fakeFirestore);
+      final p = CollectionProvider(collectionService: flaky);
+
+      p.init(userId);
+      await Future.delayed(Duration.zero);
+      expect(p.collections, isEmpty);
+
+      final now = DateTime.now();
+      await fakeFirestore.collection('collections').add({
+        'userId': userId,
+        'name': 'Recovered',
+        'description': null,
+        'recipeIds': [],
+        'coverImageUrl': null,
+        'createdAt': now.toIso8601String(),
+        'updatedAt': now.toIso8601String(),
+      });
+
+      flaky.failNext = false;
+      p.init(userId);
+      await Future.delayed(Duration.zero);
+
+      expect(p.collections, hasLength(1));
+      expect(p.collections.first.name, 'Recovered');
     });
   });
 }

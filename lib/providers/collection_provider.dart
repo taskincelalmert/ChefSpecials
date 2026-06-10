@@ -30,6 +30,9 @@ class CollectionProvider extends ChangeNotifier {
         notifyListeners();
       },
       onError: (_) {
+        // Firestore closes the stream on error; clear _userId so the
+        // next init() call re-subscribes instead of being a no-op.
+        _userId = null;
         _isLoading = false;
         notifyListeners();
       },
@@ -52,7 +55,24 @@ class CollectionProvider extends ChangeNotifier {
       createdAt: now,
       updatedAt: now,
     );
-    return _service.createCollection(collection);
+    final id = await _service.createCollection(collection);
+    // Show the new collection right away instead of waiting for the
+    // snapshot listener; the next stream emission replaces the list.
+    if (id.isNotEmpty && !_collections.any((c) => c.id == id)) {
+      _collections = [
+        RecipeCollection(
+          id: id,
+          userId: collection.userId,
+          name: collection.name,
+          description: collection.description,
+          createdAt: collection.createdAt,
+          updatedAt: collection.updatedAt,
+        ),
+        ..._collections,
+      ];
+      notifyListeners();
+    }
+    return id;
   }
 
   Future<void> deleteCollection(String collectionId) async {
