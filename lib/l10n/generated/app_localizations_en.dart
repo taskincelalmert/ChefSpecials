@@ -1137,6 +1137,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get requiredField => 'Required';
 
   @override
+  String get reasonRequired => 'Please enter a reason';
+
+  @override
   String get enterValidNumber => 'Enter a valid number';
 
   @override

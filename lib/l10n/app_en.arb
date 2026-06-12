@@ -458,6 +458,7 @@
   "goodAfternoon": "Good afternoon",
   "goodEvening": "Good evening",
   "requiredField": "Required",
+  "reasonRequired": "Please enter a reason",
   "enterValidNumber": "Enter a valid number",
   "basicInfo": "BASIC INFO",
   "foodItemName": "Food item name",

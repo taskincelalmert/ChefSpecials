@@ -1142,6 +1142,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get requiredField => 'Zorunlu';
 
   @override
+  String get reasonRequired => 'Lütfen bir sebep girin';
+
+  @override
   String get enterValidNumber => 'Geçerli bir sayı girin';
 
   @override

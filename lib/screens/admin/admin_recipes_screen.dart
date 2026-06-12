@@ -304,6 +304,7 @@ class _DeleteRecipeDialog extends StatefulWidget {
 
 class _DeleteRecipeDialogState extends State<_DeleteRecipeDialog> {
   final _descController = TextEditingController();
+  String? _errorText;
 
   @override
   void dispose() {
@@ -328,8 +329,12 @@ class _DeleteRecipeDialogState extends State<_DeleteRecipeDialog> {
           TextField(
             controller: _descController,
             maxLines: 3,
+            onChanged: (_) {
+              if (_errorText != null) setState(() => _errorText = null);
+            },
             decoration: InputDecoration(
               hintText: l10n.enterBanReason,
+              errorText: _errorText,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -345,7 +350,10 @@ class _DeleteRecipeDialogState extends State<_DeleteRecipeDialog> {
         TextButton(
           onPressed: () {
             final reason = _descController.text.trim();
-            if (reason.isEmpty) return;
+            if (reason.isEmpty) {
+              setState(() => _errorText = l10n.reasonRequired);
+              return;
+            }
             Navigator.pop(context, reason);
           },
           style: TextButton.styleFrom(

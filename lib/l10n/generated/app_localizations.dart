@@ -2215,6 +2215,12 @@ abstract class AppLocalizations {
   /// **'Required'**
   String get requiredField;
 
+  /// No description provided for @reasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a reason'**
+  String get reasonRequired;
+
   /// No description provided for @enterValidNumber.
   ///
   /// In en, this message translates to:

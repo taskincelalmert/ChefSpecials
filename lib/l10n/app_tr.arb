@@ -458,6 +458,7 @@
   "goodAfternoon": "İyi günler",
   "goodEvening": "İyi akşamlar",
   "requiredField": "Zorunlu",
+  "reasonRequired": "Lütfen bir sebep girin",
   "enterValidNumber": "Geçerli bir sayı girin",
   "basicInfo": "TEMEL BİLGİLER",
   "foodItemName": "Yiyecek adı",
